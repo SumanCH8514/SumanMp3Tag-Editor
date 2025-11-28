@@ -93,13 +93,30 @@ function App() {
               exit={{ opacity: 0, x: 20 }}
               className="space-y-8"
             >
-              <Dropzone onFilesAdded={handleFilesAdded} />
-
-              {files.length > 0 && (
+              {files.length === 0 ? (
+                <Dropzone onFilesAdded={handleFilesAdded} />
+              ) : (
                 <div className="glass-panel p-6">
-                  <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                    Files ({files.length})
-                  </h3>
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-xl font-semibold flex items-center gap-2">
+                      Files ({files.length})
+                    </h3>
+                    <label className="cursor-pointer px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-lg text-sm font-medium transition-colors">
+                      Add Files
+                      <input 
+                        type="file" 
+                        multiple 
+                        accept=".mp3,audio/mpeg" 
+                        className="hidden" 
+                        onChange={(e) => {
+                          if (e.target.files?.length) {
+                            handleFilesAdded(Array.from(e.target.files));
+                          }
+                          e.target.value = null;
+                        }}
+                      />
+                    </label>
+                  </div>
                   <div className="grid gap-4">
                     {files.map((item) => (
                       <FileItem 
