@@ -113,7 +113,16 @@ const MetadataEditor = ({ file, onSave, onCancel }) => {
       };
 
       const newBlob = await writeTags(file, metadataToSave, coverFile);
-      const newFile = new File([newBlob], file.name, { type: file.type });
+      
+      // Use title as filename if available, otherwise keep original name
+      let newFileName = file.name;
+      if (metadataToSave.title) {
+        // Sanitize filename: remove illegal characters
+        const sanitizedTitle = metadataToSave.title.replace(/[/\\?%*:|"<>]/g, '-');
+        newFileName = `${sanitizedTitle}.mp3`;
+      }
+      
+      const newFile = new File([newBlob], newFileName, { type: file.type });
       onSave(newFile);
     } catch (error) {
       console.error("Save failed", error);

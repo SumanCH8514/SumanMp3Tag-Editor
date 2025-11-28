@@ -13,8 +13,7 @@ const Dropzone = ({ onFilesAdded }) => {
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: {
-      'audio/*': ['.mp3', '.wav', '.m4a', '.flac', '.ogg'],
-      'video/*': ['.mp4', '.mkv', '.mov', '.flv']
+      'audio/mpeg': ['.mp3']
     },
     multiple: true
   });
@@ -44,12 +43,10 @@ const Dropzone = ({ onFilesAdded }) => {
         
         <div className="space-y-2">
           <h3 className="text-xl font-semibold text-white group-hover:text-purple-200 transition-colors">
-            {isDragActive ? 'Drop files here' : 'Drag & drop your files here'}
+            {isDragActive ? 'Drop MP3 files here' : 'Drag & drop your MP3 files here'}
           </h3>
           <p className="text-white/50 text-sm max-w-md mx-auto">
-            Support for MP3, WAV, M4A, MP4, MKV and more. 
-            <br />
-            <span className="text-purple-400/80">Non-MP3 files will be automatically converted.</span>
+            Support for MP3 files only.
           </p>
         </div>
 

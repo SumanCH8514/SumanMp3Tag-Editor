@@ -31,7 +31,11 @@ const Layout = ({ children }) => {
       </main>
 
       <footer className="py-6 border-t border-white/10 bg-black/20 text-center text-white/40 text-sm">
-        <p>© {new Date().getFullYear()} SumanMp3Tag Editor. Secure client-side processing.</p>
+        <p>
+          © {new Date().getFullYear()} <a href="https://plyr.0-0-0.click/SumanMp3Tag/" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">SumanMp3Tag Editor</a>. Secure client-side processing Project.
+          <br />
+          Powered By <a href="https://sumanonline.com/" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">SumanOnline.com</a> | All Rights Reserved.
+        </p>
       </footer>
     </div>
   );

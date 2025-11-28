@@ -22,24 +22,24 @@ const FileItem = ({ file, onEdit, onRemove, status }) => {
               <span className="text-purple-400">{status}</span>
             </>
           )}
+          
+          <div className="flex items-center gap-1 ml-2">
+            <button 
+              onClick={() => onEdit(file)}
+              className="p-1 hover:bg-white/10 rounded text-white/70 hover:text-white transition-colors"
+              title="Edit Metadata"
+            >
+              <Edit2 className="w-3 h-3" />
+            </button>
+            <button 
+              onClick={() => onRemove(file)}
+              className="p-1 hover:bg-red-500/20 rounded text-white/70 hover:text-red-400 transition-colors"
+              title="Remove File"
+            >
+              <Trash2 className="w-3 h-3" />
+            </button>
+          </div>
         </div>
-      </div>
-
-      <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-        <button 
-          onClick={() => onEdit(file)}
-          className="p-2 hover:bg-white/10 rounded-lg text-white/70 hover:text-white transition-colors"
-          title="Edit Metadata"
-        >
-          <Edit2 className="w-4 h-4" />
-        </button>
-        <button 
-          onClick={() => onRemove(file)}
-          className="p-2 hover:bg-red-500/20 rounded-lg text-white/70 hover:text-red-400 transition-colors"
-          title="Remove File"
-        >
-          <Trash2 className="w-4 h-4" />
-        </button>
       </div>
     </div>
   );

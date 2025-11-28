@@ -3,49 +3,22 @@ import Layout from './components/Layout';
 import Dropzone from './components/Dropzone';
 import FileItem from './components/FileItem';
 import MetadataEditor from './components/MetadataEditor';
-import { convertToMp3 } from './utils/ffmpeg';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Download } from 'lucide-react';
 
 function App() {
   const [files, setFiles] = useState([]);
   const [editingFileId, setEditingFileId] = useState(null);
-  const [processing, setProcessing] = useState(false);
 
   const handleFilesAdded = useCallback(async (newFiles) => {
     const newFileItems = newFiles.map(f => ({
       id: Math.random().toString(36).substr(2, 9),
       file: f,
-      status: f.type === 'audio/mpeg' || f.name.endsWith('.mp3') ? 'Ready' : 'Pending',
+      status: 'Ready',
       progress: 0
     }));
 
     setFiles(prev => [...prev, ...newFileItems]);
-
-    // Process non-MP3 files
-    for (const item of newFileItems) {
-      if (item.status === 'Pending') {
-        processFile(item);
-      }
-    }
   }, []);
-
-  const processFile = async (item) => {
-    setFiles(prev => prev.map(f => f.id === item.id ? { ...f, status: 'Converting...' } : f));
-    
-    try {
-      const mp3Blob = await convertToMp3(item.file, (progress) => {
-        setFiles(prev => prev.map(f => f.id === item.id ? { ...f, progress: Math.round(progress * 100) } : f));
-      });
-      
-      const mp3File = new File([mp3Blob], item.file.name.replace(/\.[^/.]+$/, "") + ".mp3", { type: 'audio/mpeg' });
-      
-      setFiles(prev => prev.map(f => f.id === item.id ? { ...f, file: mp3File, status: 'Ready', progress: 100 } : f));
-    } catch (error) {
-      console.error("Conversion failed", error);
-      setFiles(prev => prev.map(f => f.id === item.id ? { ...f, status: 'Error' } : f));
-    }
-  };
 
   const handleEdit = (fileItem) => {
     if (fileItem.status === 'Ready') {
@@ -93,7 +66,7 @@ function App() {
             transition={{ delay: 0.1 }}
             className="text-lg text-white/60 max-w-2xl mx-auto"
           >
-            Edit tags, change cover art, add watermarks, and convert video to audio. 
+            Edit tags, change cover art, and add watermarks.
             <br/>All secure, client-side processing.
           </motion.p>
         </section>
@@ -126,18 +99,13 @@ function App() {
                 <div className="glass-panel p-6">
                   <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
                     Files ({files.length})
-                    {files.some(f => f.status === 'Converting...') && (
-                      <span className="text-sm font-normal text-purple-300 animate-pulse">
-                        Processing...
-                      </span>
-                    )}
                   </h3>
                   <div className="grid gap-4">
                     {files.map((item) => (
                       <FileItem 
                         key={item.id} 
                         file={item.file}
-                        status={item.status === 'Converting...' ? `Converting ${item.progress}%` : item.status}
+                        status={item.status}
                         onEdit={() => handleEdit(item)}
                         onRemove={() => handleRemove(item.id)}
                       />
