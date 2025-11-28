@@ -41,7 +41,7 @@ A modern, premium, and secure client-side application for editing MP3 metadata, 
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/SumanCH8514/mp3-metadata-editor.git
+   git clone https://github.com/SumanCH8514/SumanMp3Tag-Editor.git
    cd mp3-metadata-editor
    ```
 
