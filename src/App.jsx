@@ -3,9 +3,11 @@ import Layout from './components/Layout';
 import Dropzone from './components/Dropzone';
 import FileItem from './components/FileItem';
 import MetadataEditor from './components/MetadataEditor';
+import FileBrowser from './components/FileBrowser';
 import { motion, AnimatePresence } from 'framer-motion';
 
 function App() {
+  const [view, setView] = useState('home'); // 'home' or 'files'
   const [files, setFiles] = useState([]);
   const [editingFileId, setEditingFileId] = useState(null);
 
@@ -50,89 +52,98 @@ function App() {
   const editingItem = files.find(f => f.id === editingFileId);
 
   return (
-    <Layout>
+    <Layout onNavigate={setView}>
       <div className="space-y-8">
-        <section className="text-center space-y-4 py-8">
-          <motion.h2 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-4xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-200 via-white to-pink-200"
-          >
-            SumanMp3Tag Editor
-          </motion.h2>
-          <motion.p 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="text-lg text-white/60 max-w-2xl mx-auto"
-          >
-            Edit tags, change cover art, and add watermarks.
-            <br/>All secure, client-side processing.
-          </motion.p>
-        </section>
+        {view === 'home' ? (
+          <>
+            {!editingItem && (
+              <section className="text-center space-y-4 py-8">
+                <motion.h2 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="text-4xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-200 via-white to-pink-200"
+                >
+                  SumanMp3Tag Editor
+                </motion.h2>
+                <motion.p 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 }}
+                  className="text-lg text-white/60 max-w-2xl mx-auto"
+                >
+                  Edit tags, change cover art, and add watermarks.
+                  <br/>All secure, client-side processing.
+                </motion.p>
+              </section>
+            )}
 
-        <AnimatePresence mode="wait">
-          {editingItem ? (
-            <motion.div
-              key="editor"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-            >
-              <MetadataEditor 
-                file={editingItem.file} 
-                onSave={handleSave} 
-                onCancel={() => setEditingFileId(null)} 
-              />
-            </motion.div>
-          ) : (
-            <motion.div
-              key="list"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-              className="space-y-8"
-            >
-              {files.length === 0 ? (
-                <Dropzone onFilesAdded={handleFilesAdded} />
+            <AnimatePresence mode="wait">
+              {editingItem ? (
+                <motion.div
+                  key="editor"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                >
+                  <MetadataEditor 
+                    file={editingItem.file} 
+                    onSave={handleSave} 
+                    onCancel={() => setEditingFileId(null)} 
+                  />
+                </motion.div>
               ) : (
-                <div className="glass-panel p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-xl font-semibold flex items-center gap-2">
-                      Files ({files.length})
-                    </h3>
-                    <label className="cursor-pointer px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-lg text-sm font-medium transition-colors">
-                      Add Files
-                      <input 
-                        type="file" 
-                        multiple 
-                        accept=".mp3,audio/mpeg" 
-                        className="hidden" 
-                        onChange={(e) => {
-                          if (e.target.files?.length) {
-                            handleFilesAdded(Array.from(e.target.files));
-                          }
-                          e.target.value = null;
-                        }}
-                      />
-                    </label>
-                  </div>
-                  <div className="grid gap-4">
-                    {files.map((item) => (
-                      <FileItem 
-                        key={item.id} 
-                        file={item.file}
-                        status={item.status}
-                        onEdit={() => handleEdit(item)}
-                        onRemove={() => handleRemove(item.id)}
-                      />
-                    ))}
-                  </div>
-                </div>
+                <motion.div
+                  key="list"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 20 }}
+                  className="space-y-8"
+                >
+                  {files.length === 0 ? (
+                    <Dropzone onFilesAdded={handleFilesAdded} />
+                  ) : (
+                    <div className="glass-panel p-4 md:p-6 overflow-hidden">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-xl font-semibold flex items-center gap-2">
+                          Files ({files.length})
+                        </h3>
+                        <label className="cursor-pointer px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-lg text-sm font-medium transition-colors">
+                          Add Files
+                          <input 
+                            type="file" 
+                            multiple 
+                            accept=".mp3,audio/mpeg" 
+                            className="hidden" 
+                            onChange={(e) => {
+                              if (e.target.files?.length) {
+                                handleFilesAdded(Array.from(e.target.files));
+                              }
+                              e.target.value = null;
+                            }}
+                          />
+                        </label>
+                      </div>
+                      <div className="flex flex-col gap-4 min-w-0 w-full">
+                        {files.map((item) => (
+                          <div key={item.id} className="w-full min-w-0">
+                            <FileItem 
+                              file={item.file}
+                              status={item.status}
+                              onEdit={() => handleEdit(item)}
+                              onRemove={() => handleRemove(item.id)}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </motion.div>
               )}
-            </motion.div>
-          )}
-        </AnimatePresence>
+            </AnimatePresence>
+          </>
+        ) : (
+          <FileBrowser />
+        )}
       </div>
     </Layout>
   );

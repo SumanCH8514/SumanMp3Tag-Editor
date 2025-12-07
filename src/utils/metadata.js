@@ -52,6 +52,7 @@ export const writeTags = async (file, metadata, coverFile) => {
   if (metadata.year) writer.setFrame('TYER', metadata.year);
   if (metadata.albumArtist) writer.setFrame('TPE2', metadata.albumArtist);
   if (metadata.track) writer.setFrame('TRCK', metadata.track);
+  if (metadata.composer) writer.setFrame('TCOM', [metadata.composer]);
   if (metadata.comment) writer.setFrame('COMM', {
     description: '',
     text: metadata.comment,

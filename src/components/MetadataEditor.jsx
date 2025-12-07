@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Save, Image as ImageIcon, Wand2, Download, Music } from 'lucide-react';
+import { Save, Image as ImageIcon, Wand2, Download, Music, Share2, Copy, Check } from 'lucide-react';
 import { readTags, writeTags } from '../utils/metadata';
 import { addWatermarkToImage } from '../utils/watermark';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const MetadataEditor = ({ file, onSave, onCancel }) => {
   const [metadata, setMetadata] = useState({
@@ -14,12 +14,16 @@ const MetadataEditor = ({ file, onSave, onCancel }) => {
     track: '',
     comment: '',
     albumArtist: '',
+    composer: '',
     copyright: '',
     cover: null
   });
   const [coverFile, setCoverFile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [shareUrl, setShareUrl] = useState(null);
+  const [copied, setCopied] = useState(false);
   const [watermarked, setWatermarked] = useState(false);
   const fileInputRef = useRef(null);
 
@@ -43,6 +47,7 @@ const MetadataEditor = ({ file, onSave, onCancel }) => {
           track: tags.track || '',
           comment: tags.comment || '',
           albumArtist: tags.albumArtist || '',
+          composer: tags.composer || '',
           copyright: tags.copyright || '',
           cover: tags.cover
         });
@@ -88,46 +93,113 @@ const MetadataEditor = ({ file, onSave, onCancel }) => {
     }
   };
 
+  const prepareFileForSave = async () => {
+    // Append suffix to title if not already present
+    const suffix = " - SumanOnline.Com";
+    let titleToSave = metadata.title || "";
+    if (!titleToSave.endsWith(suffix)) {
+      titleToSave += suffix;
+    }
+
+    // Default value for other fields
+    const defaultValue = "SumanOnline.Com";
+    const metadataToSave = {
+      title: titleToSave,
+      artist: metadata.artist || defaultValue,
+      album: metadata.album || defaultValue,
+      genre: metadata.genre || defaultValue,
+      year: metadata.year || defaultValue,
+      track: metadata.track || defaultValue,
+      comment: metadata.comment || "This mp3 File Is Downloaded From SumanOnline.Com",
+      albumArtist: metadata.albumArtist || defaultValue,
+      composer: metadata.composer || defaultValue,
+      copyright: metadata.copyright || defaultValue
+    };
+
+    const newBlob = await writeTags(file, metadataToSave, coverFile);
+    
+    // Use title as filename if available, otherwise keep original name
+    let newFileName = file.name;
+    if (metadataToSave.title) {
+      // Sanitize filename: remove illegal characters
+      const sanitizedTitle = metadataToSave.title.replace(/[/\\?%*:|"<>]/g, '-');
+      newFileName = `${sanitizedTitle}.mp3`;
+    }
+    
+    return new File([newBlob], newFileName, { type: file.type });
+  };
+
   const handleSave = async () => {
     setSaving(true);
     try {
-      // Append suffix to title if not already present
-      const suffix = " - SumanOnline.Com";
-      let titleToSave = metadata.title || "";
-      if (!titleToSave.endsWith(suffix)) {
-        titleToSave += suffix;
-      }
-
-      // Default value for other fields
-      const defaultValue = "SumanOnline.Com";
-      const metadataToSave = {
-        title: titleToSave,
-        artist: metadata.artist || defaultValue,
-        album: metadata.album || defaultValue,
-        genre: metadata.genre || defaultValue,
-        year: metadata.year || defaultValue,
-        track: metadata.track || defaultValue,
-        comment: metadata.comment || defaultValue,
-        albumArtist: metadata.albumArtist || defaultValue,
-        copyright: metadata.copyright || defaultValue
-      };
-
-      const newBlob = await writeTags(file, metadataToSave, coverFile);
-      
-      // Use title as filename if available, otherwise keep original name
-      let newFileName = file.name;
-      if (metadataToSave.title) {
-        // Sanitize filename: remove illegal characters
-        const sanitizedTitle = metadataToSave.title.replace(/[/\\?%*:|"<>]/g, '-');
-        newFileName = `${sanitizedTitle}.mp3`;
-      }
-      
-      const newFile = new File([newBlob], newFileName, { type: file.type });
+      const newFile = await prepareFileForSave();
       onSave(newFile);
     } catch (error) {
       console.error("Save failed", error);
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleUpload = async () => {
+    setUploading(true);
+    setShareUrl(null);
+    try {
+      const newFile = await prepareFileForSave();
+      const formData = new FormData();
+      formData.append('file', newFile);
+
+      // Append cover if available
+      if (coverFile) {
+        formData.append('cover', coverFile);
+      } else if (metadata.cover) {
+        try {
+          const res = await fetch(metadata.cover);
+          const blob = await res.blob();
+          formData.append('cover', blob, 'cover.jpg');
+        } catch (e) {
+          console.error("Failed to fetch cover blob", e);
+        }
+      }
+      
+      // Send metadata for indexing
+      const metadataForIndex = {
+        title: metadata.title,
+        album: metadata.album,
+        artist: metadata.artist,
+        year: metadata.year
+      };
+      formData.append('metadata', JSON.stringify(metadataForIndex));
+
+      // Determine upload URL - handle subdirectory if needed
+      // In production, upload.php should be in the same directory as the app
+      const uploadScript = 'upload.php'; 
+      
+      const response = await fetch(uploadScript, {
+        method: 'POST',
+        body: formData
+      });
+
+      const data = await response.json();
+      
+      if (response.ok && data.success) {
+        setShareUrl(data.url);
+      } else {
+        throw new Error(data.error || 'Upload failed');
+      }
+    } catch (error) {
+      console.error("Upload failed", error);
+      alert("Upload failed: " + error.message + "\nNote: This feature requires a PHP server.");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const copyToClipboard = () => {
+    if (shareUrl) {
+      navigator.clipboard.writeText(shareUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
     }
   };
 
@@ -171,8 +243,10 @@ const MetadataEditor = ({ file, onSave, onCancel }) => {
           <div className="space-y-3 p-4 bg-white/5 rounded-xl border border-white/10">
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="block text-xs text-white/50 mb-1">Position</label>
+                <label htmlFor="wm-position" className="block text-xs text-white/50 mb-1">Position</label>
                 <select 
+                  id="wm-position"
+                  name="wm-position"
                   value={watermarkOptions.position}
                   onChange={e => setWatermarkOptions({...watermarkOptions, position: e.target.value})}
                   className="w-full bg-black/20 border border-white/10 rounded-lg px-2 py-1 text-sm focus:outline-none"
@@ -183,8 +257,10 @@ const MetadataEditor = ({ file, onSave, onCancel }) => {
                 </select>
               </div>
               <div>
-                <label className="block text-xs text-white/50 mb-1">Color</label>
+                <label htmlFor="wm-color" className="block text-xs text-white/50 mb-1">Color</label>
                 <select 
+                  id="wm-color"
+                  name="wm-color"
                   value={watermarkOptions.color}
                   onChange={e => setWatermarkOptions({...watermarkOptions, color: e.target.value})}
                   className="w-full bg-black/20 border border-white/10 rounded-lg px-2 py-1 text-sm focus:outline-none"
@@ -204,15 +280,17 @@ const MetadataEditor = ({ file, onSave, onCancel }) => {
               <Wand2 className="w-4 h-4" />
               {watermarked ? 'Update Watermark' : 'Add Watermark'}
             </button>
-          </div>
+            </div>
         </div>
 
         {/* Metadata Form */}
-        <div className="flex-1 space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="col-span-2">
-              <label className="block text-sm font-medium text-white/60 mb-1">Title</label>
+        <div className="flex-1 space-y-6 min-w-0">
+          <div className="flex flex-col gap-4">
+            <div>
+              <label htmlFor="title" className="block text-sm font-medium text-white/60 mb-1">Title</label>
               <input 
+                id="title"
+                name="title"
                 type="text" 
                 value={metadata.title}
                 onChange={e => setMetadata({...metadata, title: e.target.value})}
@@ -220,59 +298,66 @@ const MetadataEditor = ({ file, onSave, onCancel }) => {
                 placeholder="Song Title"
               />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-white/60 mb-1">Contributing Artists</label>
-              <input 
-                type="text" 
-                value={metadata.artist}
-                onChange={e => setMetadata({...metadata, artist: e.target.value})}
-                className="glass-input"
-                placeholder="Artist Name"
-              />
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="artist" className="block text-sm font-medium text-white/60 mb-1">Artists</label>
+                <input 
+                  id="artist"
+                  name="artist"
+                  type="text" 
+                  value={metadata.artist}
+                  onChange={e => setMetadata({...metadata, artist: e.target.value})}
+                  className="glass-input"
+                  placeholder="Artist Name"
+                />
+              </div>
+              <div>
+                <label htmlFor="album" className="block text-sm font-medium text-white/60 mb-1">Album</label>
+                <input 
+                  id="album"
+                  name="album"
+                  type="text" 
+                  value={metadata.album}
+                  onChange={e => setMetadata({...metadata, album: e.target.value})}
+                  className="glass-input"
+                  placeholder="Album Name"
+                />
+              </div>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-white/60 mb-1">Album Artist</label>
-              <input 
-                type="text" 
-                value={metadata.albumArtist}
-                onChange={e => setMetadata({...metadata, albumArtist: e.target.value})}
-                className="glass-input"
-                placeholder="Album Artist"
-              />
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="genre" className="block text-sm font-medium text-white/60 mb-1">Genre</label>
+                <input 
+                  id="genre"
+                  name="genre"
+                  type="text" 
+                  value={metadata.genre}
+                  onChange={e => setMetadata({...metadata, genre: e.target.value})}
+                  className="glass-input"
+                  placeholder="Genre"
+                />
+              </div>
+              <div>
+                <label htmlFor="year" className="block text-sm font-medium text-white/60 mb-1">Year</label>
+                <input 
+                  id="year"
+                  name="year"
+                  type="text" 
+                  value={metadata.year}
+                  onChange={e => setMetadata({...metadata, year: e.target.value})}
+                  className="glass-input"
+                  placeholder="Year"
+                />
+              </div>
             </div>
+
             <div>
-              <label className="block text-sm font-medium text-white/60 mb-1">Album</label>
+              <label htmlFor="track" className="block text-sm font-medium text-white/60 mb-1">Track</label>
               <input 
-                type="text" 
-                value={metadata.album}
-                onChange={e => setMetadata({...metadata, album: e.target.value})}
-                className="glass-input"
-                placeholder="Album Name"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-white/60 mb-1">Genre</label>
-              <input 
-                type="text" 
-                value={metadata.genre}
-                onChange={e => setMetadata({...metadata, genre: e.target.value})}
-                className="glass-input"
-                placeholder="Genre"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-white/60 mb-1">Year</label>
-              <input 
-                type="text" 
-                value={metadata.year}
-                onChange={e => setMetadata({...metadata, year: e.target.value})}
-                className="glass-input"
-                placeholder="Year"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-white/60 mb-1">Track</label>
-              <input 
+                id="track"
+                name="track"
                 type="text" 
                 value={metadata.track}
                 onChange={e => setMetadata({...metadata, track: e.target.value})}
@@ -280,9 +365,12 @@ const MetadataEditor = ({ file, onSave, onCancel }) => {
                 placeholder="Track"
               />
             </div>
-            <div className="col-span-2">
-              <label className="block text-sm font-medium text-white/60 mb-1">Comment</label>
+            
+            <div>
+              <label htmlFor="comment" className="block text-sm font-medium text-white/60 mb-1">Comment</label>
               <input 
+                id="comment"
+                name="comment"
                 type="text" 
                 value={metadata.comment}
                 onChange={e => setMetadata({...metadata, comment: e.target.value})}
@@ -290,23 +378,35 @@ const MetadataEditor = ({ file, onSave, onCancel }) => {
                 placeholder="Comment"
               />
             </div>
-            <div className="col-span-2">
-              <label className="block text-sm font-medium text-white/60 mb-1">Copyright</label>
-              <input 
-                type="text" 
-                value={metadata.copyright}
-                onChange={e => setMetadata({...metadata, copyright: e.target.value})}
-                className="glass-input"
-                placeholder="Copyright"
-              />
-            </div>
           </div>
 
-          <div className="pt-4 flex items-center gap-4">
+          {shareUrl && (
+            <motion.div 
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              className="bg-green-500/10 border border-green-500/20 rounded-xl p-4"
+            >
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm text-green-400 font-medium mb-1">File Uploaded Successfully!</p>
+                  <p className="text-xs text-white/60 truncate">{shareUrl}</p>
+                </div>
+                <button 
+                  onClick={copyToClipboard}
+                  className="p-2 hover:bg-green-500/20 rounded-lg text-green-400 transition-colors"
+                  title="Copy Link"
+                >
+                  {copied ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
+                </button>
+              </div>
+            </motion.div>
+          )}
+
+          <div className="pt-4 flex flex-col sm:flex-row gap-4">
             <button 
               onClick={handleSave}
-              disabled={saving}
-              className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white py-3 rounded-xl font-semibold shadow-lg shadow-purple-500/25 transition-all active:scale-95 flex items-center justify-center gap-2"
+              disabled={saving || uploading}
+              className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white py-3 rounded-xl font-semibold shadow-lg shadow-purple-500/25 transition-all active:scale-95 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {saving ? 'Saving...' : (
                 <>
@@ -316,7 +416,20 @@ const MetadataEditor = ({ file, onSave, onCancel }) => {
               )}
             </button>
             <button 
+              onClick={handleUpload}
+              disabled={saving || uploading}
+              className="flex-1 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white py-3 rounded-xl font-semibold shadow-lg shadow-blue-500/25 transition-all active:scale-95 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {uploading ? 'Uploading...' : (
+                <>
+                  <Share2 className="w-5 h-5" />
+                  Upload & Share
+                </>
+              )}
+            </button>
+            <button 
               onClick={onCancel}
+              disabled={saving || uploading}
               className="px-6 py-3 glass-button rounded-xl"
             >
               Cancel
