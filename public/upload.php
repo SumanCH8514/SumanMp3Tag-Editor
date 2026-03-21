@@ -86,10 +86,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $jsonFilename = $basename . '_' . uniqid() . '.json';
                     $jsonPath = $dataDir . $jsonFilename;
                     
-                    // Add file info to metadata
+                    // Add file info to metadata - store relative paths for platform independence
                     $metadata['filename'] = $filename;
-                    $metadata['url'] = $url;
-                    $metadata['coverUrl'] = $coverUrl;
+                    $metadata['url'] = $targetPath; // Relative path
+                    $metadata['coverUrl'] = isset($coverPath) ? $coverPath : null; // Relative path
                     $metadata['uploadDate'] = date('Y-m-d H:i:s');
                     
                     file_put_contents($jsonPath, json_encode($metadata, JSON_PRETTY_PRINT));

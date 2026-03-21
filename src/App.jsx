@@ -3,7 +3,7 @@ import Layout from './components/Layout';
 import Dropzone from './components/Dropzone';
 import FileItem from './components/FileItem';
 import MetadataEditor from './components/MetadataEditor';
-import FileBrowser from './components/FileBrowser';
+import BatchMetadataEditor from './components/BatchMetadataEditor';
 import { motion, AnimatePresence } from 'framer-motion';
 
 function App() {
@@ -141,6 +141,8 @@ function App() {
               )}
             </AnimatePresence>
           </>
+        ) : view === 'batch' ? (
+          <BatchMetadataEditor />
         ) : (
           <FileBrowser />
         )}

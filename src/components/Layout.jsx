@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Music, Github, History, Menu, X } from 'lucide-react';
+import { Music, Github, History, Menu, X, Globe, Music2, Film, Layers } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const Layout = ({ children, onNavigate }) => {
@@ -29,6 +29,14 @@ const Layout = ({ children, onNavigate }) => {
           
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-4">
+            <button 
+              onClick={() => onNavigate && onNavigate('batch')}
+              className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-medium transition-colors"
+            >
+              <Layers className="w-4 h-4" />
+              Batch Editor
+            </button>
+
             <button 
               onClick={() => onNavigate && onNavigate('files')}
               className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-medium transition-colors"
@@ -106,6 +114,17 @@ const Layout = ({ children, onNavigate }) => {
               <nav className="p-6 space-y-4">
                 <button 
                   onClick={() => {
+                    if (onNavigate) onNavigate('batch');
+                    closeMenu();
+                  }}
+                  className="w-full flex items-center gap-3 px-4 py-3 bg-white/5 hover:bg-white/10 rounded-xl text-left font-medium transition-colors"
+                >
+                  <Layers className="w-5 h-5 text-blue-400" />
+                  Batch Editor
+                </button>
+
+                <button 
+                  onClick={() => {
                     if (onNavigate) onNavigate('files');
                     closeMenu();
                   }}
@@ -125,6 +144,40 @@ const Layout = ({ children, onNavigate }) => {
                   <Github className="w-5 h-5 text-white/70" />
                   GitHub
                 </a>
+
+                <div className="pt-4 border-t border-white/10 space-y-4">
+                  <p className="px-4 text-xs font-semibold text-white/30 uppercase tracking-wider">Services</p>
+                  <a 
+                    href="https://sumanonline.com/" 
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full flex items-center gap-3 px-4 py-3 bg-white/5 hover:bg-white/10 rounded-xl text-left font-medium transition-colors"
+                    onClick={closeMenu}
+                  >
+                    <Globe className="w-5 h-5 text-blue-400" />
+                    SumanOnline
+                  </a>
+                  <a 
+                    href="https://songs.sumanonline.com/" 
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full flex items-center gap-3 px-4 py-3 bg-white/5 hover:bg-white/10 rounded-xl text-left font-medium transition-colors"
+                    onClick={closeMenu}
+                  >
+                    <Music2 className="w-5 h-5 text-pink-400" />
+                    Stream Songs
+                  </a>
+                  <a 
+                    href="https://movies.sumanonline.com/" 
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full flex items-center gap-3 px-4 py-3 bg-white/5 hover:bg-white/10 rounded-xl text-left font-medium transition-colors"
+                    onClick={closeMenu}
+                  >
+                    <Film className="w-5 h-5 text-red-400" />
+                    Stream Movies
+                  </a>
+                </div>
               </nav>
             </motion.div>
           </>

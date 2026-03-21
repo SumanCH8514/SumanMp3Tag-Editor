@@ -94,14 +94,14 @@ const MetadataEditor = ({ file, onSave, onCancel }) => {
   };
 
   const prepareFileForSave = async () => {
-    // Append suffix to title if not already present
-    const suffix = " - SumanOnline.Com";
+    const mainSuffix = " - SumanOnline.Com";
+    
+    // 1. Prepare Metadata for Writing
     let titleToSave = metadata.title || "";
-    if (!titleToSave.endsWith(suffix)) {
-      titleToSave += suffix;
+    if (titleToSave && !titleToSave.endsWith(mainSuffix)) {
+      titleToSave += mainSuffix;
     }
 
-    // Default value for other fields
     const defaultValue = "SumanOnline.Com";
     const metadataToSave = {
       title: titleToSave,
@@ -116,16 +116,29 @@ const MetadataEditor = ({ file, onSave, onCancel }) => {
       copyright: metadata.copyright || defaultValue
     };
 
-    const newBlob = await writeTags(file, metadataToSave, coverFile);
-    
-    // Use title as filename if available, otherwise keep original name
+    // 2. Prepare Filename: {Title} - {First Artist} - SumanOnline.Com.mp3
     let newFileName = file.name;
-    if (metadataToSave.title) {
-      // Sanitize filename: remove illegal characters
-      const sanitizedTitle = metadataToSave.title.replace(/[/\\?%*:|"<>]/g, '-');
-      newFileName = `${sanitizedTitle}.mp3`;
-    }
+    const titleBase = (metadata.title || "Unknown").replace(mainSuffix, "").trim();
+    const artistInput = (metadata.artist || "Unknown").trim();
+    const firstArtist = artistInput.split(/[,&/]|ft\.|feat\./i)[0].trim();
     
+    const constructedName = `${titleBase} - ${firstArtist}${mainSuffix}`;
+    const sanitizedName = constructedName.replace(/[/\\?%*:|"<>]/g, '-');
+    newFileName = `${sanitizedName}.mp3`;
+
+    // 3. Handle Cover Art Persistence
+    let finalCoverFile = coverFile;
+    if (!finalCoverFile && metadata.cover) {
+      try {
+        const response = await fetch(metadata.cover);
+        const blob = await response.blob();
+        finalCoverFile = new File([blob], "cover.jpg", { type: blob.type });
+      } catch (e) {
+        console.warn("Could not retrieve current cover for saving:", e);
+      }
+    }
+
+    const newBlob = await writeTags(file, metadataToSave, finalCoverFile);
     return new File([newBlob], newFileName, { type: file.type });
   };
 
@@ -249,7 +262,7 @@ const MetadataEditor = ({ file, onSave, onCancel }) => {
                   name="wm-position"
                   value={watermarkOptions.position}
                   onChange={e => setWatermarkOptions({...watermarkOptions, position: e.target.value})}
-                  className="w-full bg-black/20 border border-white/10 rounded-lg px-2 py-1 text-sm focus:outline-none"
+                  className="glass-select !px-2 !py-1 text-sm"
                 >
                   <option value="bottom">Bottom</option>
                   <option value="center">Center</option>
@@ -263,7 +276,7 @@ const MetadataEditor = ({ file, onSave, onCancel }) => {
                   name="wm-color"
                   value={watermarkOptions.color}
                   onChange={e => setWatermarkOptions({...watermarkOptions, color: e.target.value})}
-                  className="w-full bg-black/20 border border-white/10 rounded-lg px-2 py-1 text-sm focus:outline-none"
+                  className="glass-select !px-2 !py-1 text-sm"
                 >
                   <option value="yellow">Yellow</option>
                   <option value="white">White</option>
