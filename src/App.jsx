@@ -4,6 +4,7 @@ import Dropzone from './components/Dropzone';
 import FileItem from './components/FileItem';
 import MetadataEditor from './components/MetadataEditor';
 import BatchMetadataEditor from './components/BatchMetadataEditor';
+import FileBrowser from './components/FileBrowser';
 import { motion, AnimatePresence } from 'framer-motion';
 
 function App() {
