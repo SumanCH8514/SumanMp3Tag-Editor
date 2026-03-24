@@ -1,6 +1,6 @@
 # 🎵 SumanMp3Tag Editor
 
-![SumanMp3Tag Editor Banner](public/project_poster.png)
+![SumanMp3Tag Editor Banner](public/project_poster1.png)
 
 ### **A Premium, Private, and Powerful Music Metadata Management Suite.**
 
