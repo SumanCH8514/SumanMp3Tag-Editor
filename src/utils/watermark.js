@@ -11,15 +11,12 @@ export const addWatermarkToImage = (imageFile, options = {}) => {
       canvas.height = img.height;
       const ctx = canvas.getContext('2d');
       
-      // Draw original image
       ctx.drawImage(img, 0, 0);
       
-      // Configure watermark text
       const text = "@SumanOnline_Com";
-      const fontSize = Math.max(12, Math.floor(img.height * 0.05)); // 5% of height
+      const fontSize = Math.max(12, Math.floor(img.height * 0.05));
       ctx.font = `bold ${fontSize}px Arial`;
       
-      // Set Color
       const colors = {
         yellow: 'rgba(255, 255, 0, 0.9)',
         white: 'rgba(255, 255, 255, 0.9)',
@@ -31,13 +28,11 @@ export const addWatermarkToImage = (imageFile, options = {}) => {
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       
-      // Add shadow for better visibility
       ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
       ctx.shadowBlur = 4;
       ctx.shadowOffsetX = 2;
       ctx.shadowOffsetY = 2;
       
-      // Position logic
       const padding = Math.max(10, Math.floor(img.height * 0.02)); 
       const x = canvas.width / 2;
       let y;

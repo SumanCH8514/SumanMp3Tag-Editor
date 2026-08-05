@@ -91,13 +91,11 @@ const BatchMetadataEditor = () => {
                 const mainSuffix = " - SumanOnline.Com";
                 const defaultBrand = "SumanOnline.Com";
 
-                // 1. Title Logic: original + suffix
                 let currentTitle = existingTags.title || "Unknown";
                 if (!currentTitle.endsWith(mainSuffix)) {
                     currentTitle += mainSuffix;
                 }
 
-                // 2. Metadata Logic: Keep existing if present, else use batch default
                 const metaToSave = {
                     title: currentTitle,
                     artist: existingTags.artist || batchOptions.metadata.artist || defaultBrand,
@@ -106,10 +104,10 @@ const BatchMetadataEditor = () => {
                     year: existingTags.year || batchOptions.metadata.year || defaultBrand,
                     track: existingTags.track || batchOptions.metadata.track || defaultBrand,
                     comment: existingTags.comment || batchOptions.metadata.comment || "This mp3 File Is Downloaded From SumanOnline.Com",
-                    albumArtist: existingTags.albumArtist || batchOptions.metadata.albumArtist || defaultBrand
+                    albumArtist: existingTags.albumArtist || batchOptions.metadata.albumArtist || defaultBrand,
+                    lyrics: existingTags.lyrics || ''
                 };
 
-                // 3. Watermark Logic
                 let finalCoverFile = null;
                 if (batchOptions.watermark.enabled && existingTags.cover) {
                     try {
@@ -132,7 +130,6 @@ const BatchMetadataEditor = () => {
 
                 const newBlob = await writeTags(item.file, metaToSave, finalCoverFile);
 
-                // Construct Filename
                 const titleBase = currentTitle.replace(mainSuffix, "").trim();
                 const artistInput = (metaToSave.artist || "Unknown").trim();
                 const firstArtist = artistInput.split(/[,&/]|ft\.|feat\./i)[0].trim();

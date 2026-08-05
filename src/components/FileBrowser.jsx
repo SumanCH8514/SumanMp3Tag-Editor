@@ -66,13 +66,11 @@ const FileBrowser = () => {
   const handleBulkDelete = async () => {
     if (!window.confirm(`Are you sure you want to delete ${selectedIds.size} files?`)) return;
     
-    // Convert to array to process
     const idsToDelete = Array.from(selectedIds);
-    setDeletingId('bulk'); // show loading state
+    setDeletingId('bulk');
     
     let successCount = 0;
     
-    // Process serially or parallel - parallel for speed
     await Promise.all(idsToDelete.map(async (id) => {
         const success = await performDelete(id);
         if (success) successCount++;
@@ -87,7 +85,6 @@ const FileBrowser = () => {
   const handleBulkDownload = () => {
     const filesToDownload = files.filter(f => selectedIds.has(f.id));
     filesToDownload.forEach((file, index) => {
-      // Stagger downloads slightly to avoid browser blocking
       setTimeout(() => {
         const a = document.createElement('a');
         a.href = file.url;

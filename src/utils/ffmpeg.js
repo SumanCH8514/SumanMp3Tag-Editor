@@ -7,9 +7,6 @@ export const loadFFmpeg = async () => {
   if (ffmpeg) return ffmpeg;
 
   ffmpeg = new FFmpeg();
-  
-  // Load ffmpeg.wasm from a CDN or local public folder
-  // Using unpkg for simplicity in this demo, but for production should be local
   const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd';
   
   await ffmpeg.load({
@@ -36,7 +33,6 @@ export const convertToMp3 = async (file, onProgress) => {
   
   const data = await ffmpeg.readFile(outputName);
   
-  // Cleanup
   await ffmpeg.deleteFile(inputName);
   await ffmpeg.deleteFile(outputName);
   

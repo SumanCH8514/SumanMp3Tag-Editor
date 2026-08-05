@@ -27,7 +27,6 @@ const Layout = ({ children, onNavigate }) => {
             </h1>
           </div>
           
-          {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-4">
             <button 
               onClick={() => onNavigate && onNavigate('batch')}
@@ -56,7 +55,6 @@ const Layout = ({ children, onNavigate }) => {
             </a>
           </div>
 
-          {/* Mobile Menu Button */}
           <div className="md:hidden z-50 relative">
             <button 
               onClick={toggleMenu}
@@ -68,7 +66,6 @@ const Layout = ({ children, onNavigate }) => {
         </div>
       </header>
       
-      {/* Mobile Sliding Menu */}
       <AnimatePresence>
         {isMobileMenuOpen && (
           <>
@@ -86,7 +83,6 @@ const Layout = ({ children, onNavigate }) => {
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
               className="fixed top-0 right-0 bottom-0 w-80 bg-slate-900 border-l border-white/10 shadow-2xl z-[100] md:hidden flex flex-col"
             >
-              {/* Drawer Header */}
               <div className="py-6 px-4 border-b border-white/10 flex items-center justify-between bg-black/20">
                 <div 
                   className="flex items-center gap-3" 
@@ -110,7 +106,6 @@ const Layout = ({ children, onNavigate }) => {
                 </button>
               </div>
 
-              {/* Drawer Content */}
               <nav className="p-6 space-y-4">
                 <button 
                   onClick={() => {

@@ -8,7 +8,7 @@ import FileBrowser from './components/FileBrowser';
 import { motion, AnimatePresence } from 'framer-motion';
 
 function App() {
-  const [view, setView] = useState('home'); // 'home' or 'files'
+  const [view, setView] = useState('home');
   const [files, setFiles] = useState([]);
   const [editingFileId, setEditingFileId] = useState(null);
 
@@ -30,7 +30,6 @@ function App() {
   };
 
   const handleSave = (newFile) => {
-    // Trigger download
     const url = URL.createObjectURL(newFile);
     const a = document.createElement('a');
     a.href = url;
@@ -40,7 +39,6 @@ function App() {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
 
-    // Update list
     setFiles(prev => prev.map(f => f.id === editingFileId ? { ...f, file: newFile } : f));
     setEditingFileId(null);
   };
