@@ -20,9 +20,10 @@ By leveraging 100% browser-based audio processing, your files remain completely 
 ## ✨ Features
 
 - **⚡ Client-Side Processing**: Fast ID3 tag reading and writing with zero server uploads required.
+- **🎨 Fetch Artwork Online**: Dedicated high-definition (600x600) music album cover art retrieval powered by Apple iTunes Store API and Base64 CORS proxying.
 - **🔍 Multi-Server Lyrics Engine**: Fetch synced (LRC) and plain text lyrics across **LRCLIB**, **LyricsOVH**, **LrcSearch**, and **Global** search engines.
 - **🔤 Dual-Script Prioritization**: Automatically prioritizes English/Romanized lyrics while preserving access to native script versions.
-- **✨ Auto Fetch Details**: Instantly retrieves missing track metadata (Artists, Album, Release Year, and Genre) using the Apple iTunes Store Music API.
+- **✨ Auto Fetch Details**: Instantly retrieves missing track metadata (Artists, Album, Release Year, and Genre) using multi-stage query pipelines with handle sanitization.
 - **🖼️ Cover Art Studio & Watermarking**: Upload high-res cover art and apply dynamic, customizable text watermarks with real-time preview.
 - **📦 Batch Metadata Editor**: Edit, rename, and process multiple tracks or full albums simultaneously.
 - **🏷️ Library Branding & Sanitization**: Enforce consistent tag suffixes and clean OS-compliant file naming.
@@ -61,10 +62,10 @@ Follow these steps to run **SumanMp3Tag Editor** locally on your machine.
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/SumanCH8514/mp3-metadata-editor.git
+git clone https://github.com/SumanCH8514/SumanMp3Tag-Editor.git
 
 # 2. Navigate to the project directory
-cd mp3-metadata-editor
+cd SumanMp3Tag-Editor
 
 # 3. Install project dependencies
 npm install
@@ -80,10 +81,11 @@ Open your browser and navigate to `http://localhost:5173`.
 ## 💡 Usage
 
 1. **Upload Audio File**: Drag & drop or select an MP3 file on the home screen.
-2. **Auto-Fetch Metadata**: Click **Auto Fetch Details** to populate missing track information from Apple iTunes.
-3. **Fetch Lyrics**: Use the **Lyrics Panel** to search and toggle between **LRC (Synced)** and **Plain** text lyrics.
-4. **Watermark Cover**: Add custom watermarks to your cover artwork with customizable position and color.
-5. **Save & Export**: Click **Save & Download** to generate your updated, tagged MP3 file.
+2. **Auto-Fetch Details**: Click **Auto Fetch Details** to populate missing track information from Apple iTunes.
+3. **Fetch Artwork Online**: Click **Fetch Artwork Online** to load HD 600x600 album artwork directly into your preview.
+4. **Fetch Lyrics**: Use the **Lyrics Panel** to search and toggle between **LRC (Synced)** and **Plain** text lyrics.
+5. **Watermark Cover**: Add custom watermarks to your cover artwork with customizable position and color.
+6. **Save & Export**: Click **Save & Download** to generate your updated, tagged MP3 file.
 
 ---
 
@@ -117,7 +119,7 @@ mp3-metadata-editor/
 
 Contributions are welcome! If you'd like to improve SumanMp3Tag Editor:
 
-1. Fork the repository (`https://github.com/SumanCH8514/mp3-metadata-editor/fork`).
+1. Fork the repository (`https://github.com/SumanCH8514/SumanMp3Tag-Editor/fork`).
 2. Create your feature branch (`git checkout -b feature/AmazingFeature`).
 3. Commit your changes (`git commit -m 'Add some AmazingFeature'`).
 4. Push to the branch (`git push origin feature/AmazingFeature`).

@@ -29,83 +29,127 @@ export const isNonLatinScript = (text) => {
   return /[\u0900-\u097F\u0600-\u06FF\u0400-\u04FF\u4E00-\u9FFF]/.test(text);
 };
 
-export const fetchSongMetadata = async ({ title, artist, album, duration }) => {
-  const cleanTitle = cleanQueryString(title);
-  const cleanArtist = cleanQueryString(artist?.split(/[,&/]|ft\.|feat\./i)[0]);
-
-  if (!cleanTitle) {
-    return { success: false, error: 'Song title is required to fetch details.' };
-  }
-
+export const fetchImageAsBase64 = async (imageUrl) => {
+  if (!imageUrl) return null;
+  if (imageUrl.startsWith('data:')) return imageUrl;
+  
   try {
-    const q1 = [cleanTitle, cleanArtist].filter(Boolean).join(' ');
-    const r1 = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(q1)}&media=music&limit=10`);
-    if (r1.ok) {
-      const d1 = await r1.json();
-      if (d1.results && d1.results.length > 0) {
-        let best = d1.results[0];
-        if (duration && duration > 0) {
-          const validDurMs = Math.round(duration) * 1000;
-          const withinTol = d1.results.filter(x => x.trackTimeMillis && Math.abs(x.trackTimeMillis - validDurMs) <= 20000);
-          if (withinTol.length > 0) {
-            withinTol.sort((a, b) => Math.abs(a.trackTimeMillis - validDurMs) - Math.abs(b.trackTimeMillis - validDurMs));
-            best = withinTol[0];
-          }
-        }
-
-        const coverUrl = best.artworkUrl100 ? best.artworkUrl100.replace('100x100bb', '600x600bb') : null;
-        const yearStr = best.releaseDate ? new Date(best.releaseDate).getFullYear().toString() : '';
-        const albumClean = best.collectionName ? best.collectionName.replace(/\s*-\s*(Single|EP)$/i, '') : '';
-
-        return {
-          success: true,
-          title: best.trackName || cleanTitle,
-          artist: best.artistName || '',
-          album: albumClean,
-          genre: best.primaryGenreName || '',
-          year: yearStr,
-          cover: coverUrl,
-          source: 'Apple iTunes Music'
-        };
-      }
+    const cleanUrl = imageUrl.replace(/^https?:\/\//, '');
+    const proxyUrl = `https://images.weserv.nl/?url=${encodeURIComponent(cleanUrl)}&w=600&h=600&fit=cover&output=jpg`;
+    const res = await fetch(proxyUrl);
+    if (res.ok) {
+      const blob = await res.blob();
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result);
+        reader.onerror = () => resolve(imageUrl);
+        reader.readAsDataURL(blob);
+      });
     }
   } catch (err) {
-    console.warn('iTunes metadata search failed:', err.message);
+    console.warn("Proxy base64 conversion failed:", err);
+  }
+  return imageUrl;
+};
+
+export const fetchSongMetadata = async ({ title, artist, album, duration }) => {
+  const sanitize = (str) => {
+    if (!str) return '';
+    return cleanQueryString(str)
+      .replace(/@\S+/g, '')
+      .replace(/Unknown (Artist|Album|Title)/gi, '')
+      .replace(/SumanOnline\.Com/gi, '')
+      .trim();
+  };
+
+  const cleanTitle = sanitize(title);
+  const cleanArtist = sanitize(artist?.split(/[,&/]|ft\.|feat\./i)[0]);
+  const cleanAlbum = sanitize(album);
+
+  if (!cleanTitle && !cleanAlbum) {
+    return { success: false, error: 'Song title or album is required to fetch details.' };
+  }
+
+  const queryStages = [
+    [cleanAlbum, cleanTitle].filter(Boolean).join(' '),
+    [cleanTitle, cleanArtist].filter(Boolean).join(' '),
+    cleanTitle,
+    cleanAlbum
+  ].filter((q, idx, arr) => q && arr.indexOf(q) === idx);
+
+  for (const queryStr of queryStages) {
+    try {
+      const r1 = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(queryStr)}&media=music&limit=10`);
+      if (r1.ok) {
+        const d1 = await r1.json();
+        if (d1.results && d1.results.length > 0) {
+          let best = d1.results[0];
+          if (duration && duration > 0) {
+            const validDurMs = Math.round(duration) * 1000;
+            const withinTol = d1.results.filter(x => x.trackTimeMillis && Math.abs(x.trackTimeMillis - validDurMs) <= 25000);
+            if (withinTol.length > 0) {
+              withinTol.sort((a, b) => Math.abs(a.trackTimeMillis - validDurMs) - Math.abs(b.trackTimeMillis - validDurMs));
+              best = withinTol[0];
+            }
+          }
+
+          const coverUrl = best.artworkUrl100 ? best.artworkUrl100.replace('100x100bb', '600x600bb') : null;
+          const coverBase64 = coverUrl ? await fetchImageAsBase64(coverUrl) : null;
+          const yearStr = best.releaseDate ? new Date(best.releaseDate).getFullYear().toString() : '';
+          const albumClean = best.collectionName ? best.collectionName.replace(/\s*-\s*(Single|EP)$/i, '') : '';
+
+          return {
+            success: true,
+            title: best.trackName || cleanTitle,
+            artist: best.artistName || '',
+            album: albumClean,
+            genre: best.primaryGenreName || '',
+            year: yearStr,
+            cover: coverBase64,
+            source: 'Apple iTunes Music'
+          };
+        }
+      }
+    } catch (err) {
+      console.warn(`iTunes query stage "${queryStr}" failed:`, err.message);
+    }
   }
 
   try {
-    const q2 = [cleanTitle, cleanArtist].filter(Boolean).join(' ');
-    const r2 = await fetch(`https://lrclib.net/api/search?q=${encodeURIComponent(q2)}`);
-    if (r2.ok) {
-      const results = await r2.json();
-      if (Array.isArray(results) && results.length > 0) {
-        let best = results[0];
-        if (duration && duration > 0) {
-          const validDur = Math.round(duration);
-          const withinTol = results.filter(x => x.duration && Math.abs(x.duration - validDur) <= 15);
-          if (withinTol.length > 0) {
-            withinTol.sort((a, b) => Math.abs(a.duration - validDur) - Math.abs(b.duration - validDur));
-            best = withinTol[0];
+    const q2 = [cleanTitle, cleanArtist].filter(Boolean).join(' ') || cleanAlbum;
+    if (q2) {
+      const r2 = await fetch(`https://lrclib.net/api/search?q=${encodeURIComponent(q2)}`);
+      if (r2.ok) {
+        const results = await r2.json();
+        if (Array.isArray(results) && results.length > 0) {
+          let best = results[0];
+          if (duration && duration > 0) {
+            const validDur = Math.round(duration);
+            const withinTol = results.filter(x => x.duration && Math.abs(x.duration - validDur) <= 15);
+            if (withinTol.length > 0) {
+              withinTol.sort((a, b) => Math.abs(a.duration - validDur) - Math.abs(b.duration - validDur));
+              best = withinTol[0];
+            }
           }
-        }
 
-        return {
-          success: true,
-          title: best.trackName || best.name || cleanTitle,
-          artist: best.artistName || '',
-          album: best.albumName || '',
-          genre: '',
-          year: '',
-          cover: null,
-          source: 'LRCLIB Database'
-        };
+          return {
+            success: true,
+            title: best.trackName || best.name || cleanTitle,
+            artist: best.artistName || '',
+            album: best.albumName || '',
+            genre: '',
+            year: '',
+            cover: null,
+            source: 'LRCLIB Database'
+          };
+        }
       }
     }
   } catch (err) {
     console.warn('LRCLIB metadata search failed:', err.message);
   }
 
-  return { success: false, error: `No metadata found online for "${cleanTitle}".` };
+  return { success: false, error: `No album artwork found online for "${cleanTitle || cleanAlbum}".` };
 };
 
 export const fetchLyricsByServer = async ({ title, artist, album, duration, server = 'S1' }) => {

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Save, Image as ImageIcon, Wand2, Download, Music, Share2, Copy, Check, FileText, Sparkles, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { readTags, writeTags, applyLyricsBranding, getAudioDuration } from '../utils/metadata';
 import { addWatermarkToImage } from '../utils/watermark';
-import { fetchLyricsByServer, fetchSongMetadata, SERVERS } from '../utils/lrclib';
+import { fetchLyricsByServer, fetchSongMetadata, fetchImageAsBase64, cleanQueryString, SERVERS } from '../utils/lrclib';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const MetadataEditor = ({ file, onSave, onCancel }) => {
@@ -41,6 +41,73 @@ const MetadataEditor = ({ file, onSave, onCancel }) => {
   const [isDraggingServerBar, setIsDraggingServerBar] = useState(false);
   const [dragStartX, setDragStartX] = useState(0);
   const [dragScrollLeft, setDragScrollLeft] = useState(0);
+
+  const [fetchingArtwork, setFetchingArtwork] = useState(false);
+
+  const handleFetchArtworkOnline = async () => {
+    let titleToSearch = metadata.title;
+    if (!titleToSearch && file && file.name) {
+      titleToSearch = cleanQueryString(file.name.replace(/\.[^/.]+$/, ''));
+    }
+    
+    if (!titleToSearch) {
+      setLyricsStatus({ type: 'error', text: 'Please enter a song title first to fetch artwork.' });
+      return;
+    }
+
+    setFetchingArtwork(true);
+    try {
+      let durToPass = audioDuration;
+      if (!durToPass) {
+        durToPass = await getAudioDuration(file);
+        if (durToPass) setAudioDuration(durToPass);
+      }
+
+      const res = await fetchSongMetadata({
+        title: titleToSearch,
+        artist: metadata.artist,
+        album: metadata.album,
+        duration: durToPass
+      });
+
+      if (res.success && res.cover) {
+        let finalCover = res.cover;
+        if (!finalCover.startsWith('data:')) {
+          finalCover = await fetchImageAsBase64(res.cover);
+        }
+
+        setMetadata(prev => ({ 
+          ...prev, 
+          cover: finalCover,
+          title: prev.title || res.title || titleToSearch
+        }));
+        setWatermarked(false);
+
+        try {
+          const coverRes = await fetch(finalCover);
+          const blob = await coverRes.blob();
+          setCoverFile(new File([blob], "online_cover.jpg", { type: blob.type }));
+        } catch (e) {
+          console.warn("Failed to convert artwork URL to file blob:", e);
+        }
+
+        setLyricsStatus({
+          type: 'success',
+          text: `Fetched HD Album Artwork from ${res.source || 'iTunes'}!`
+        });
+      } else {
+        setLyricsStatus({
+          type: 'error',
+          text: `No album artwork found online for "${titleToSearch}".`
+        });
+      }
+    } catch (err) {
+      console.error("Fetch artwork failed", err);
+      setLyricsStatus({ type: 'error', text: 'Failed to fetch album artwork online.' });
+    } finally {
+      setFetchingArtwork(false);
+    }
+  };
 
   const scrollServerBar = (direction) => {
     if (serverBarRef.current) {
@@ -478,9 +545,20 @@ const MetadataEditor = ({ file, onSave, onCancel }) => {
             {metadata.cover ? (
               <img src={metadata.cover} alt="Cover Art" className="w-full h-full object-cover" />
             ) : (
-              <div className="text-center p-4">
-                <ImageIcon className="w-12 h-12 text-white/20 mx-auto mb-2" />
-                <span className="text-sm text-white/40">Click to upload cover</span>
+              <div className="text-center p-4 space-y-2">
+                <ImageIcon className="w-12 h-12 text-white/20 mx-auto" />
+                <span className="text-xs text-white/40 block">Click to upload cover</span>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleFetchArtworkOnline();
+                  }}
+                  className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-pink-600/80 hover:bg-pink-500 text-white shadow-md transition-all inline-flex items-center gap-1.5"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-pink-200 animate-pulse" />
+                  Fetch Online
+                </button>
               </div>
             )}
             <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
@@ -534,6 +612,26 @@ const MetadataEditor = ({ file, onSave, onCancel }) => {
             >
               <Wand2 className="w-4 h-4" />
               {watermarked ? 'Update Watermark' : 'Add Watermark'}
+            </button>
+
+            <button 
+              type="button"
+              onClick={handleFetchArtworkOnline}
+              disabled={fetchingArtwork}
+              className="w-full mt-2.5 px-3 py-2.5 rounded-xl text-xs md:text-sm font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-rose-600 hover:from-purple-500 hover:to-rose-500 text-white shadow-lg shadow-pink-500/25 active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer border border-pink-400/30"
+              title="Fetch high-resolution music album cover art online"
+            >
+              {fetchingArtwork ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin text-pink-200" />
+                  <span>Fetching Artwork...</span>
+                </>
+              ) : (
+                <>
+                  <ImageIcon className="w-4 h-4 text-pink-200" />
+                  <span>Fetch Artwork Online</span>
+                </>
+              )}
             </button>
           </div>
         </div>
