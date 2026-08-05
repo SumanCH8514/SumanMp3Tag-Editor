@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://sumanonline.likesyou.org/SumanMp3Tag/sitemap.xml
