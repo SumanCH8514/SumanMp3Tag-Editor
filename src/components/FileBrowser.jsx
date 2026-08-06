@@ -157,16 +157,19 @@ const FileBrowser = ({ onPlaySong }) => {
       shareUrl = `${baseUrl}?${params.toString()}`;
     }
 
+    const titleText = `🎵 Listen to "${fileItem.title || fileItem.filename}" by ${fileItem.artist || 'Unknown Artist'} on SumanMp3Tag Player`;
+    const fullShareMessage = `${titleText}\n${shareUrl}`;
+
     if (navigator.share) {
       navigator.share({
         title: fileItem.title || fileItem.filename,
-        text: `Listen to ${fileItem.title || fileItem.filename} on SumanMp3Tag Editor!`,
+        text: titleText,
         url: shareUrl
       }).catch(() => {});
     }
 
     if (navigator.clipboard) {
-      navigator.clipboard.writeText(shareUrl);
+      navigator.clipboard.writeText(fullShareMessage);
       setCopiedId(fileItem.id);
       setTimeout(() => setCopiedId(null), 2500);
     }

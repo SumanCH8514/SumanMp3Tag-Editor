@@ -399,15 +399,33 @@ const MusicPlayerPage = ({ songId: propSongId, onBack }) => {
     document.body.removeChild(a);
   };
 
-  const handleShare = () => {
+  const handleShare = async () => {
     let shareUrl = window.location.href;
     if (song && song.id) {
       const baseUrl = window.location.origin + window.location.pathname;
       shareUrl = `${baseUrl}?play=${encodeURIComponent(song.id)}`;
     }
 
+    const titleText = song ? `🎵 Listen to "${song.title || 'Song'}" by ${song.artist || 'Unknown Artist'} on SumanMp3Tag Player` : 'Listen on SumanMp3Tag Player';
+    const fullShareMessage = `${titleText}\n${shareUrl}`;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: song ? `${song.title} - ${song.artist}` : 'SumanMp3Tag Player',
+          text: titleText,
+          url: shareUrl
+        });
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2500);
+        return;
+      } catch (err) {
+        // Fallback to clipboard
+      }
+    }
+
     if (navigator.clipboard) {
-      navigator.clipboard.writeText(shareUrl);
+      navigator.clipboard.writeText(fullShareMessage);
       setCopied(true);
       setTimeout(() => setCopied(false), 2500);
     }
