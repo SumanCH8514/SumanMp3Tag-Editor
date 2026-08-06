@@ -1,16 +1,62 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import Layout from './components/Layout';
 import Dropzone from './components/Dropzone';
 import FileItem from './components/FileItem';
 import MetadataEditor from './components/MetadataEditor';
 import BatchMetadataEditor from './components/BatchMetadataEditor';
 import FileBrowser from './components/FileBrowser';
+import MusicPlayerPage from './components/MusicPlayerPage';
 import { motion, AnimatePresence } from 'framer-motion';
+
+const getBaseUrl = () => {
+  let basePath = window.location.pathname;
+  if (basePath.toLowerCase().endsWith('/files') || basePath.toLowerCase().endsWith('/files/')) {
+    basePath = basePath.replace(/\/files\/?$/i, '/');
+  } else if (basePath.toLowerCase().endsWith('/batch') || basePath.toLowerCase().endsWith('/batch/')) {
+    basePath = basePath.replace(/\/batch\/?$/i, '/');
+  }
+  if (!basePath.endsWith('/')) basePath += '/';
+  return window.location.origin + basePath;
+};
 
 function App() {
   const [view, setView] = useState('home');
+  const [previousView, setPreviousView] = useState('files');
   const [files, setFiles] = useState([]);
   const [editingFileId, setEditingFileId] = useState(null);
+  const [sharedSongId, setSharedSongId] = useState(null);
+  
+  const previousViewRef = useRef('files');
+
+  useEffect(() => {
+    previousViewRef.current = previousView;
+  }, [previousView]);
+
+  useEffect(() => {
+    const syncUrlView = () => {
+      const pathname = window.location.pathname.toLowerCase();
+      const params = new URLSearchParams(window.location.search);
+      const playId = params.get('play') || params.get('id') || params.get('song') || (params.get('title') && params.get('url') ? 'query_song' : null);
+      
+      if (playId) {
+        setSharedSongId(playId);
+        setView('player');
+      } else if (pathname.endsWith('/files') || pathname.endsWith('/files/')) {
+        setSharedSongId(null);
+        setView('files');
+      } else if (pathname.endsWith('/batch') || pathname.endsWith('/batch/')) {
+        setSharedSongId(null);
+        setView('batch');
+      } else {
+        setSharedSongId(null);
+        setView('home');
+      }
+    };
+
+    syncUrlView();
+    window.addEventListener('popstate', syncUrlView);
+    return () => window.removeEventListener('popstate', syncUrlView);
+  }, []);
 
   const handleFilesAdded = useCallback(async (newFiles) => {
     const newFileItems = newFiles.map(f => ({
@@ -48,12 +94,52 @@ function App() {
     if (editingFileId === id) setEditingFileId(null);
   };
 
+  const handleOpenPlayer = (songId) => {
+    if (view !== 'player') {
+      setPreviousView(view);
+    }
+    if (songId && window.history && window.history.pushState) {
+      const newUrl = `${getBaseUrl()}?play=${encodeURIComponent(songId)}`;
+      window.history.pushState({ play: songId }, '', newUrl);
+    }
+    setSharedSongId(songId);
+    setView('player');
+  };
+
+  const handleNavigate = (newView) => {
+    if (window.history && window.history.pushState) {
+      let targetUrl = getBaseUrl();
+      if (newView === 'files') {
+        targetUrl += 'Files';
+      } else if (newView === 'batch') {
+        targetUrl += 'Batch';
+      }
+      window.history.pushState(null, '', targetUrl);
+    }
+    setView(newView);
+  };
+
   const editingItem = files.find(f => f.id === editingFileId);
 
   return (
-    <Layout onNavigate={setView}>
+    <Layout currentView={view} onNavigate={handleNavigate}>
       <div className="space-y-8">
-        {view === 'home' ? (
+        {view === 'player' ? (
+          <MusicPlayerPage 
+            songId={sharedSongId}
+            onBack={() => {
+              const targetView = previousView || 'files';
+              const newUrl = targetView === 'files' 
+                ? getBaseUrl() + 'Files' 
+                : (targetView === 'batch' ? getBaseUrl() + 'Batch' : getBaseUrl());
+              if (window.history && window.history.pushState) {
+                window.history.pushState(null, '', newUrl);
+              }
+              setSharedSongId(null);
+              setView(targetView);
+            }}
+          />
+        ) : view === 'home' ? (
           <>
             {!editingItem && (
               <section className="text-center space-y-4 py-8">
@@ -143,7 +229,7 @@ function App() {
         ) : view === 'batch' ? (
           <BatchMetadataEditor />
         ) : (
-          <FileBrowser />
+          <FileBrowser onPlaySong={handleOpenPlayer} />
         )}
       </div>
     </Layout>

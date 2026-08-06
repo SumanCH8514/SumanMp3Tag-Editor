@@ -22,3 +22,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Uploads directory contents
+public/uploads/mp3/*
+public/uploads/covers/*
+public/uploads/data/*
+!public/uploads/**/.gitkeep

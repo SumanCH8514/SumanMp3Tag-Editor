@@ -1,25 +1,70 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Music, Download, ExternalLink, Calendar, Trash2 } from 'lucide-react';
+import { Search, Music, Download, ExternalLink, Calendar, Trash2, Share2, Check, Play, Lock, ShieldAlert, KeyRound } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { getValidCoverUrl, getApiUrl } from '../utils/lrclib';
 
-const FileBrowser = () => {
+const ENCRYPTED_PIN_HASH = '6bf76be895daa81eecd02713d3fb73d1f5215d48720a139479234c293e88d26a';
+
+const computeSha256 = async (str) => {
+  if (!str) return '';
+  const encoder = new TextEncoder();
+  const data = encoder.encode(str);
+  const hashBuffer = await window.crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+};
+
+const FileBrowser = ({ onPlaySong }) => {
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    return sessionStorage.getItem('suman_files_pin_auth') === ENCRYPTED_PIN_HASH;
+  });
+  const [pinInput, setPinInput] = useState('');
+  const [pinError, setPinError] = useState(false);
+
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [error, setError] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
   const [selectedIds, setSelectedIds] = useState(new Set());
+  const [copiedId, setCopiedId] = useState(null);
 
   useEffect(() => {
-    fetchFiles();
-  }, []);
+    if (isAuthenticated) {
+      fetchFiles();
+    }
+  }, [isAuthenticated]);
+
+  const handleVerifyPin = async (inputPin) => {
+    if (!inputPin || inputPin.length !== 4) return false;
+    const computedHash = await computeSha256(inputPin);
+    if (computedHash === ENCRYPTED_PIN_HASH) {
+      sessionStorage.setItem('suman_files_pin_auth', ENCRYPTED_PIN_HASH);
+      setIsAuthenticated(true);
+      setPinError(false);
+      return true;
+    } else {
+      setPinError(true);
+      return false;
+    }
+  };
+
+  const handlePinSubmit = async (e) => {
+    if (e) e.preventDefault();
+    await handleVerifyPin(pinInput);
+  };
 
   const fetchFiles = async () => {
     try {
-      const response = await fetch('list_files.php');
+      const response = await fetch(getApiUrl('list_files.php'));
       const data = await response.json();
       if (data.files) {
-        setFiles(data.files);
+        const formatted = data.files.map(f => ({
+          ...f,
+          url: getValidCoverUrl(f.url),
+          coverUrl: getValidCoverUrl(f.coverUrl)
+        }));
+        setFiles(formatted);
       }
     } catch (err) {
       console.error("Failed to fetch files", err);
@@ -37,7 +82,7 @@ const FileBrowser = () => {
   const performDelete = async (id) => {
     setDeletingId(id);
     try {
-      const response = await fetch('delete_file.php', {
+      const response = await fetch(getApiUrl('delete_file.php'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id }),
@@ -96,6 +141,37 @@ const FileBrowser = () => {
     });
   };
 
+  const handleShareFile = (fileItem, e) => {
+    if (e) e.stopPropagation();
+    
+    const baseUrl = window.location.origin + window.location.pathname;
+    let shareUrl = `${baseUrl}?play=${encodeURIComponent(fileItem.id || fileItem.filename)}`;
+
+    if (!fileItem.id && fileItem.url) {
+      const params = new URLSearchParams();
+      params.set('title', fileItem.title || fileItem.filename);
+      params.set('url', fileItem.url);
+      if (fileItem.artist) params.set('artist', fileItem.artist);
+      if (fileItem.album) params.set('album', fileItem.album);
+      if (fileItem.coverUrl) params.set('cover', fileItem.coverUrl);
+      shareUrl = `${baseUrl}?${params.toString()}`;
+    }
+
+    if (navigator.share) {
+      navigator.share({
+        title: fileItem.title || fileItem.filename,
+        text: `Listen to ${fileItem.title || fileItem.filename} on SumanMp3Tag Editor!`,
+        url: shareUrl
+      }).catch(() => {});
+    }
+
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(shareUrl);
+      setCopiedId(fileItem.id);
+      setTimeout(() => setCopiedId(null), 2500);
+    }
+  };
+
   const toggleSelect = (id) => {
     setSelectedIds(prev => {
       const next = new Set(prev);
@@ -125,6 +201,71 @@ const FileBrowser = () => {
       (file.filename && file.filename.toLowerCase().includes(searchLower))
     );
   });
+
+  if (!isAuthenticated) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 px-4 min-h-[50vh]">
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.9, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          className={`w-full max-w-md p-8 rounded-3xl bg-slate-900/90 border ${
+            pinError ? 'border-red-500/60 shadow-[0_0_35px_rgba(239,68,68,0.35)]' : 'border-white/15 shadow-[0_25px_60px_rgba(0,0,0,0.7)]'
+          } backdrop-blur-3xl text-center relative overflow-hidden transition-all duration-300`}
+        >
+          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500 via-pink-500 to-rose-500 flex items-center justify-center mx-auto mb-5 shadow-lg shadow-purple-500/30 border border-white/20">
+            <Lock className="w-8 h-8 text-white" />
+          </div>
+
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-white mb-2 tracking-tight">
+            Protected Access
+          </h2>
+          <p className="text-xs sm:text-sm text-white/60 mb-6 font-medium">
+            Enter security PIN to access Uploaded Files.
+          </p>
+
+          <form onSubmit={handlePinSubmit} className="space-y-5">
+            <div className="relative">
+              <input 
+                type="password"
+                maxLength={4}
+                value={pinInput}
+                onChange={async (e) => {
+                  const val = e.target.value.replace(/[^0-9]/g, '');
+                  setPinInput(val);
+                  setPinError(false);
+                  if (val.length === 4) {
+                    await handleVerifyPin(val);
+                  }
+                }}
+                placeholder="• • • •"
+                className="w-full text-center text-3xl font-mono tracking-[0.6em] py-3.5 px-4 bg-white/5 border border-white/15 rounded-2xl text-white placeholder-white/20 focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-500/20 transition-all shadow-inner"
+                autoFocus
+              />
+            </div>
+
+            {pinError && (
+              <motion.p 
+                initial={{ opacity: 0, y: -5 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-xs font-bold text-red-400 flex items-center justify-center gap-1.5"
+              >
+                <ShieldAlert className="w-4 h-4" />
+                Invalid PIN. Access Unauthorized.
+              </motion.p>
+            )}
+
+            <button
+              type="submit"
+              className="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-purple-600 via-pink-600 to-rose-600 hover:from-purple-500 hover:to-rose-500 text-white font-bold text-sm shadow-lg shadow-purple-500/25 active:scale-95 transition-all cursor-pointer flex items-center justify-center gap-2"
+            >
+              <KeyRound className="w-4 h-4" />
+              <span>Unlock Access</span>
+            </button>
+          </form>
+        </motion.div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
@@ -226,21 +367,43 @@ const FileBrowser = () => {
                 <input 
                   type="checkbox" 
                   checked={selectedIds.has(file.id)}
-                  onChange={() => {}} // Handled by div click
+                  onChange={() => {}}
                   className="w-5 h-5 rounded border-white/20 bg-black/20 text-purple-600 focus:ring-purple-500/50 cursor-pointer"
                 />
               </div>
 
-              <div className="w-16 h-16 md:w-12 md:h-12 rounded-lg bg-gradient-to-br from-purple-500/20 to-pink-500/20 flex items-center justify-center flex-shrink-0 overflow-hidden">
+              <div 
+                className="w-16 h-16 md:w-12 md:h-12 rounded-lg bg-gradient-to-br from-purple-500/20 to-pink-500/20 flex items-center justify-center flex-shrink-0 overflow-hidden relative group/cover cursor-pointer"
+                onClick={(e) => {
+                  if (onPlaySong) {
+                    e.stopPropagation();
+                    onPlaySong(file.id);
+                  }
+                }}
+                title="Click to play song"
+              >
                 {file.coverUrl ? (
                   <img src={file.coverUrl} alt={file.title} className="w-full h-full object-cover" />
                 ) : (
                   <Music className="w-8 h-8 md:w-6 md:h-6 text-purple-300" />
                 )}
+                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/cover:opacity-100 transition-opacity flex items-center justify-center">
+                  <Play className="w-5 h-5 text-white fill-white" />
+                </div>
               </div>
               
               <div className="flex-1 min-w-0 space-y-1 text-center md:text-left w-full md:w-auto">
-                <h3 className="font-semibold text-white truncate">{file.title || file.filename}</h3>
+                <h3 
+                  className="font-semibold text-white truncate hover:text-purple-300 transition-colors"
+                  onClick={(e) => {
+                    if (onPlaySong) {
+                      e.stopPropagation();
+                      onPlaySong(file.id);
+                    }
+                  }}
+                >
+                  {file.title || file.filename}
+                </h3>
                 <div className="flex flex-wrap items-center justify-center md:justify-start gap-x-2 gap-y-1 text-sm text-white/50">
                   {file.artist && (
                     <span className="flex items-center gap-1">
@@ -264,12 +427,31 @@ const FileBrowser = () => {
                 </div>
               </div>
 
-              <div className="w-full md:w-auto flex items-center gap-2" onClick={e => e.stopPropagation()}>
+              <div className="w-full md:w-auto flex items-center gap-2 flex-wrap md:flex-nowrap justify-end" onClick={e => e.stopPropagation()}>
+                <button
+                  type="button"
+                  onClick={(e) => handleShareFile(file, e)}
+                  className="px-4 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white rounded-xl text-xs md:text-sm font-semibold shadow-md shadow-purple-500/20 active:scale-95 transition-all flex items-center justify-center gap-2 border border-purple-400/30 cursor-pointer"
+                  title="Share Music Link & Player"
+                >
+                  {copiedId === file.id ? (
+                    <>
+                      <Check className="w-4 h-4 text-emerald-300" />
+                      <span className="text-emerald-300">Copied!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Share2 className="w-4 h-4 text-pink-200" />
+                      <span>Share</span>
+                    </>
+                  )}
+                </button>
+
                 <a 
                   href={file.url} 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="flex-1 md:flex-none px-6 py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
+                  className="flex-1 md:flex-none px-5 py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs md:text-sm font-medium transition-colors flex items-center justify-center gap-2"
                 >
                   <Download className="w-4 h-4" />
                   Get Link
@@ -278,7 +460,7 @@ const FileBrowser = () => {
                 <button
                   onClick={() => handleDelete(file.id, file.title || file.filename)}
                   disabled={deletingId === file.id}
-                  className="p-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg transition-colors"
+                  className="p-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-xl transition-colors"
                   title="Delete File"
                 >
                   {deletingId === file.id ? (

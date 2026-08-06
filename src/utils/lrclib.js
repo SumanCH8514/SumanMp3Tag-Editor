@@ -24,9 +24,38 @@ export const cleanQueryString = (str) => {
     .trim();
 };
 
-export const isNonLatinScript = (text) => {
-  if (!text) return false;
-  return /[\u0900-\u097F\u0600-\u06FF\u0400-\u04FF\u4E00-\u9FFF]/.test(text);
+export const getValidCoverUrl = (url) => {
+  if (!url) return null;
+  if (url.startsWith('data:')) return url;
+  
+  if (url.includes('uploads/covers/') || url.includes('uploads/mp3/')) {
+    const relativePath = url.substring(url.indexOf('uploads/'));
+    let basePath = typeof window !== 'undefined' ? window.location.pathname : '/';
+    if (basePath.toLowerCase().endsWith('/files') || basePath.toLowerCase().endsWith('/files/')) {
+      basePath = basePath.replace(/\/files\/?$/i, '/');
+    } else if (basePath.toLowerCase().endsWith('/batch') || basePath.toLowerCase().endsWith('/batch/')) {
+      basePath = basePath.replace(/\/batch\/?$/i, '/');
+    }
+    if (!basePath.endsWith('/')) basePath += '/';
+    const origin = typeof window !== 'undefined' ? window.location.origin : '';
+    return `${origin}${basePath}${relativePath}`;
+  }
+  return url;
+};
+
+export const getApiUrl = (endpoint) => {
+  if (!endpoint) return '';
+  if (endpoint.startsWith('http://') || endpoint.startsWith('https://')) return endpoint;
+  
+  let basePath = typeof window !== 'undefined' ? window.location.pathname : '/';
+  if (basePath.toLowerCase().endsWith('/files') || basePath.toLowerCase().endsWith('/files/')) {
+    basePath = basePath.replace(/\/files\/?$/i, '/');
+  } else if (basePath.toLowerCase().endsWith('/batch') || basePath.toLowerCase().endsWith('/batch/')) {
+    basePath = basePath.replace(/\/batch\/?$/i, '/');
+  }
+  if (!basePath.endsWith('/')) basePath += '/';
+  const origin = typeof window !== 'undefined' ? window.location.origin : '';
+  return `${origin}${basePath}${endpoint.replace(/^\//, '')}`;
 };
 
 export const fetchImageAsBase64 = async (imageUrl) => {

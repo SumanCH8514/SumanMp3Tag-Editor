@@ -17,7 +17,6 @@ if (!$id) {
     exit;
 }
 
-// Configuration
 $baseDir = 'uploads/';
 $mp3Dir = $baseDir . 'mp3/';
 $coversDir = $baseDir . 'covers/';
@@ -31,19 +30,15 @@ if (!file_exists($jsonPath)) {
     exit;
 }
 
-// Read JSON to get associated files
 $content = file_get_contents($jsonPath);
 $data = json_decode($content, true);
 
 if ($data) {
-    // 1. Delete MP3
     if (isset($data['filename']) && file_exists($mp3Dir . $data['filename'])) {
         unlink($mp3Dir . $data['filename']);
     }
 
-    // 2. Delete Cover if it exists and is local
     if (isset($data['coverUrl'])) {
-        // Extract filename from URL
         $coverName = basename($data['coverUrl']);
         if (file_exists($coversDir . $coverName)) {
             unlink($coversDir . $coverName);
@@ -51,7 +46,6 @@ if ($data) {
     }
 }
 
-// 3. Delete JSON
 if (unlink($jsonPath)) {
     echo json_encode(['success' => true]);
 } else {

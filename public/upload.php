@@ -2,16 +2,14 @@
 header('Access-Control-Allow-Origin: *');
 header('Content-Type: application/json');
 
-// Configuration
 $baseDir = 'uploads/';
 $mp3Dir = $baseDir . 'mp3/';
 $coversDir = $baseDir . 'covers/';
 $dataDir = $baseDir . 'data/';
 
 $allowedTypes = ['audio/mpeg', 'audio/mp3'];
-$maxSize = 50 * 1024 * 1024; // 50MB
+$maxSize = 100 * 1024 * 1024;
 
-// Create upload directories if they don't exist
 if (!file_exists($mp3Dir)) mkdir($mp3Dir, 0755, true);
 if (!file_exists($coversDir)) mkdir($coversDir, 0755, true);
 if (!file_exists($dataDir)) mkdir($dataDir, 0755, true);
@@ -20,14 +18,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_FILES['file'])) {
         $file = $_FILES['file'];
         
-        // Validate error
         if ($file['error'] !== UPLOAD_ERR_OK) {
+            $errMsg = 'File upload error code: ' . $file['error'];
+            if ($file['error'] === UPLOAD_ERR_INI_SIZE || $file['error'] === UPLOAD_ERR_FORM_SIZE) {
+                $errMsg = 'File exceeds PHP upload max filesize limit (upload_max_filesize).';
+            }
             http_response_code(400);
-            echo json_encode(['error' => 'File upload error code: ' . $file['error']]);
+            echo json_encode(['error' => $errMsg]);
             exit;
         }
 
-        // Validate type
         $finfo = finfo_open(FILEINFO_MIME_TYPE);
         $mimeType = finfo_file($finfo, $file['tmp_name']);
         finfo_close($finfo);
@@ -38,36 +38,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
         }
 
-        // Validate size
         if ($file['size'] > $maxSize) {
             http_response_code(400);
-            echo json_encode(['error' => 'File too large. Max size is 50MB.']);
+            echo json_encode(['error' => 'File too large. Max size is 100MB.']);
             exit;
         }
 
-        // Generate unique filename
         $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
         $basename = pathinfo($file['name'], PATHINFO_FILENAME);
-        // Sanitize basename
         $basename = preg_replace('/[^a-zA-Z0-9_-]/', '_', $basename);
         $filename = $basename . '_' . uniqid() . '.' . $extension;
         $targetPath = $mp3Dir . $filename;
 
-        // Move file
         if (move_uploaded_file($file['tmp_name'], $targetPath)) {
             $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http";
             $domain = $_SERVER['HTTP_HOST'];
             $path = dirname($_SERVER['REQUEST_URI']);
             $url = "$protocol://$domain$path/$targetPath";
             
-            // Handle Cover Upload
             $coverUrl = null;
             if (isset($_FILES['cover']) && $_FILES['cover']['error'] === UPLOAD_ERR_OK) {
                 $coverFile = $_FILES['cover'];
                 $coverExt = pathinfo($coverFile['name'], PATHINFO_EXTENSION);
-                if (!$coverExt) $coverExt = 'jpg'; // Default to jpg if missing
+                if (!$coverExt) $coverExt = 'jpg';
                 
-                // Basic validation for images
                 $coverMime = mime_content_type($coverFile['tmp_name']);
                 if (strpos($coverMime, 'image/') === 0) {
                     $coverName = 'cover_' . $basename . '_' . uniqid() . '.' . $coverExt;
@@ -79,17 +73,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             }
             
-            // Save metadata if provided
             if (isset($_POST['metadata'])) {
                 $metadata = json_decode($_POST['metadata'], true);
                 if ($metadata) {
                     $jsonFilename = $basename . '_' . uniqid() . '.json';
                     $jsonPath = $dataDir . $jsonFilename;
                     
-                    // Add file info to metadata - store relative paths for platform independence
                     $metadata['filename'] = $filename;
-                    $metadata['url'] = $targetPath; // Relative path
-                    $metadata['coverUrl'] = isset($coverPath) ? $coverPath : null; // Relative path
+                    $metadata['url'] = $targetPath;
+                    $metadata['coverUrl'] = isset($coverPath) ? $coverPath : null;
                     $metadata['uploadDate'] = date('Y-m-d H:i:s');
                     
                     file_put_contents($jsonPath, json_encode($metadata, JSON_PRETTY_PRINT));
