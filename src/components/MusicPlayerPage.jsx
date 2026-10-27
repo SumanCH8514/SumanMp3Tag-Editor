@@ -31,7 +31,7 @@ const MusicPlayerPage = ({ songId: propSongId, onBack }) => {
 
   useEffect(() => {
     let targetId = propSongId;
-    
+
     if (!targetId) {
       const urlParams = new URLSearchParams(window.location.search);
       targetId = urlParams.get('play') || urlParams.get('id') || urlParams.get('song');
@@ -291,7 +291,7 @@ const MusicPlayerPage = ({ songId: propSongId, onBack }) => {
 
         navigator.mediaSession.setActionHandler('play', () => {
           if (audioRef.current) {
-            audioRef.current.play().then(() => setIsPlaying(true)).catch(() => {});
+            audioRef.current.play().then(() => setIsPlaying(true)).catch(() => { });
           }
         });
 
@@ -317,7 +317,7 @@ const MusicPlayerPage = ({ songId: propSongId, onBack }) => {
     }
 
     return () => {
-      document.title = "SumanMp3Tag Editor - Online MP3 Tag & Cover Editor";
+      document.title = "SumanMp3Tag - Online MP3 Tag & Cover Editor";
     };
   }, [song]);
 
@@ -420,7 +420,6 @@ const MusicPlayerPage = ({ songId: propSongId, onBack }) => {
         setTimeout(() => setCopied(false), 2500);
         return;
       } catch (err) {
-        // Fallback to clipboard
       }
     }
 
@@ -458,7 +457,7 @@ const MusicPlayerPage = ({ songId: propSongId, onBack }) => {
           <p className="text-xs text-white/50">{error || "The requested song is unavailable or has been removed."}</p>
         </div>
         {onBack && (
-          <button 
+          <button
             onClick={onBack}
             className="px-5 py-2 bg-purple-600 hover:bg-purple-500 text-white text-sm font-semibold rounded-xl transition-all"
           >
@@ -473,14 +472,14 @@ const MusicPlayerPage = ({ songId: propSongId, onBack }) => {
   const progressPercent = effectiveDuration > 0 ? (currentTime / effectiveDuration) * 100 : 0;
 
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
       className="max-w-4xl mx-auto py-2 md:py-6 px-3 relative z-10"
     >
       {ambientEnabled && song?.coverUrl && (
         <div className="fixed inset-0 pointer-events-none -z-10 overflow-hidden transition-opacity duration-1000">
-          <div 
+          <div
             className="absolute -inset-24 bg-cover bg-center opacity-45 md:opacity-55 blur-[110px] md:blur-[160px] scale-125 transition-all duration-1000 transform-gpu"
             style={{ backgroundImage: `url(${song.coverUrl})` }}
           />
@@ -488,10 +487,10 @@ const MusicPlayerPage = ({ songId: propSongId, onBack }) => {
         </div>
       )}
 
-      <audio 
-        ref={audioRef} 
-        src={song.url} 
-        loop={isLooping} 
+      <audio
+        ref={audioRef}
+        src={song.url}
+        loop={isLooping}
         preload="auto"
         crossOrigin="anonymous"
         onTimeUpdate={updatePlaybackDOM}
@@ -501,8 +500,6 @@ const MusicPlayerPage = ({ songId: propSongId, onBack }) => {
           if (!isLooping) setIsPlaying(false);
         }}
       />
-
-      {/* Instructed Position: Real-Time Music Visualizer Box + Ambient Mode Switch */}
       <div className="flex items-center justify-between mb-2 sm:mb-3 relative z-20 gap-2 sm:gap-3">
         <div className="flex-1 h-8 sm:h-10 bg-white/5 backdrop-blur-md rounded-xl sm:rounded-2xl border border-white/10 px-2.5 sm:px-4 flex items-center justify-between overflow-hidden shadow-lg min-w-0">
           <div className="hidden sm:flex items-center gap-2 mr-3 flex-shrink-0">
@@ -515,11 +512,10 @@ const MusicPlayerPage = ({ songId: propSongId, onBack }) => {
         <button
           type="button"
           onClick={() => setAmbientEnabled(!ambientEnabled)}
-          className={`hidden sm:flex px-3.5 py-2.5 rounded-2xl text-xs font-semibold border transition-all items-center gap-1.5 cursor-pointer backdrop-blur-md flex-shrink-0 ${
-            ambientEnabled 
-              ? 'bg-purple-500/25 text-purple-200 border-purple-400/40 shadow-lg shadow-purple-500/20' 
+          className={`hidden sm:flex px-3.5 py-2.5 rounded-2xl text-xs font-semibold border transition-all items-center gap-1.5 cursor-pointer backdrop-blur-md flex-shrink-0 ${ambientEnabled
+              ? 'bg-purple-500/25 text-purple-200 border-purple-400/40 shadow-lg shadow-purple-500/20'
               : 'bg-white/5 text-white/50 border-white/10 hover:text-white'
-          }`}
+            }`}
           title="Toggle Full-Page Ambient Artwork Lighting"
         >
           <SunMedium className={`w-3.5 h-3.5 ${ambientEnabled ? 'text-amber-300 animate-pulse' : 'text-white/40'}`} />
@@ -528,15 +524,15 @@ const MusicPlayerPage = ({ songId: propSongId, onBack }) => {
       </div>
 
       <div className="glass-panel p-4 sm:p-6 md:p-8 rounded-2xl sm:rounded-3xl border border-white/15 shadow-[0_25px_60px_rgba(0,0,0,0.7)] backdrop-blur-3xl relative overflow-hidden bg-slate-900/80 z-10">
-        
+
         <div className="grid grid-cols-1 md:grid-cols-12 gap-3 sm:gap-6 md:gap-10 items-center relative z-10">
-          
+
           <div className="md:col-span-5 flex flex-col items-center justify-center">
             <div className="relative w-40 h-40 sm:w-52 sm:h-52 md:w-64 md:h-64 rounded-2xl overflow-hidden shadow-[0_10px_40px_rgba(0,0,0,0.6)] border border-white/20 group ring-1 ring-white/10">
               {song.coverUrl ? (
-                <img 
-                  src={song.coverUrl} 
-                  alt={song.title || 'Album Art'} 
+                <img
+                  src={song.coverUrl}
+                  alt={song.title || 'Album Art'}
                   className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                 />
               ) : (
@@ -555,7 +551,7 @@ const MusicPlayerPage = ({ songId: propSongId, onBack }) => {
           </div>
 
           <div className="md:col-span-7 flex flex-col justify-between space-y-2.5 sm:space-y-4">
-            
+
             <div className="text-center md:text-left space-y-0.5 sm:space-y-1">
               <h2 className="text-xl sm:text-3xl md:text-4xl font-extrabold text-white tracking-tight drop-shadow-md truncate">
                 {song.title || song.filename || 'Untitled Track'}
@@ -571,12 +567,12 @@ const MusicPlayerPage = ({ songId: propSongId, onBack }) => {
             </div>
 
             <div className="space-y-1.5 sm:space-y-2">
-              <div 
+              <div
                 ref={progressBarRef}
                 onClick={handleSeek}
                 className="h-2 sm:h-2.5 w-full bg-white/10 hover:bg-white/20 rounded-full cursor-pointer relative overflow-hidden group transition-all backdrop-blur-sm border border-white/5"
               >
-                <div 
+                <div
                   ref={progressFillRef}
                   className="h-full bg-gradient-to-r from-violet-500 via-purple-500 to-pink-500 rounded-full relative transition-all duration-100 shadow-[0_0_12px_rgba(168,85,247,0.6)]"
                   style={{ width: `${progressPercent}%` }}
@@ -592,7 +588,7 @@ const MusicPlayerPage = ({ songId: propSongId, onBack }) => {
             </div>
 
             <div className="flex items-center justify-center md:justify-start gap-2.5 sm:gap-3.5 py-0.5 sm:py-1">
-              <button 
+              <button
                 onClick={() => setIsLooping(!isLooping)}
                 className={`p-2 sm:p-2.5 rounded-full transition-all ${isLooping ? 'bg-purple-500/30 text-purple-300 border border-purple-400/50 shadow-md' : 'text-white/40 hover:text-white hover:bg-white/10'}`}
                 title={isLooping ? "Loop On" : "Loop Off"}
@@ -600,7 +596,7 @@ const MusicPlayerPage = ({ songId: propSongId, onBack }) => {
                 <Repeat className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
 
-              <button 
+              <button
                 onClick={() => skipSeconds(-10)}
                 className="p-2 sm:p-2.5 rounded-full text-white/70 hover:text-white hover:bg-white/10 border border-transparent hover:border-white/10 transition-all active:scale-95"
                 title="Rewind 10s"
@@ -608,7 +604,7 @@ const MusicPlayerPage = ({ songId: propSongId, onBack }) => {
                 <RotateCcw className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
 
-              <button 
+              <button
                 onClick={togglePlay}
                 className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-gradient-to-tr from-purple-600 via-pink-600 to-rose-500 hover:from-purple-500 hover:to-rose-400 text-white flex items-center justify-center shadow-[0_0_25px_rgba(219,39,119,0.5)] active:scale-95 transition-all cursor-pointer border border-pink-300/40 ring-4 ring-pink-500/20"
                 title={isPlaying ? "Pause" : "Play"}
@@ -620,7 +616,7 @@ const MusicPlayerPage = ({ songId: propSongId, onBack }) => {
                 )}
               </button>
 
-              <button 
+              <button
                 onClick={() => skipSeconds(10)}
                 className="p-2 sm:p-2.5 rounded-full text-white/70 hover:text-white hover:bg-white/10 border border-transparent hover:border-white/10 transition-all active:scale-95"
                 title="Forward 10s"
@@ -628,7 +624,7 @@ const MusicPlayerPage = ({ songId: propSongId, onBack }) => {
                 <RotateCw className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
 
-              <button 
+              <button
                 onClick={toggleMute}
                 className={`p-2 sm:p-2.5 rounded-full transition-all ${isMuted ? 'text-red-400 bg-red-500/20 border border-red-500/40' : 'text-white/40 hover:text-white hover:bg-white/10'}`}
                 title={isMuted ? "Unmute" : "Mute"}
@@ -639,7 +635,7 @@ const MusicPlayerPage = ({ songId: propSongId, onBack }) => {
 
             <div className="flex items-center gap-2.5 sm:gap-3 px-3 py-1.5 sm:px-4 sm:py-2 bg-white/5 rounded-xl sm:rounded-2xl border border-white/10 backdrop-blur-md">
               <Volume2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-purple-300 flex-shrink-0" />
-              <input 
+              <input
                 type="range"
                 min="0"
                 max="1"
@@ -651,7 +647,7 @@ const MusicPlayerPage = ({ songId: propSongId, onBack }) => {
             </div>
 
             <div className="grid grid-cols-2 gap-2.5 sm:gap-3 pt-0.5 sm:pt-1">
-              <button 
+              <button
                 onClick={handleDownload}
                 className="py-2.5 px-3 sm:py-3 sm:px-5 rounded-xl sm:rounded-2xl bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold text-xs sm:text-sm shadow-lg active:scale-95 transition-all flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer relative backdrop-blur-md"
               >
@@ -659,7 +655,7 @@ const MusicPlayerPage = ({ songId: propSongId, onBack }) => {
                 <span>Download Song</span>
               </button>
 
-              <button 
+              <button
                 onClick={handleShare}
                 className="py-2.5 px-3 sm:py-3 sm:px-5 rounded-xl sm:rounded-2xl bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold text-xs sm:text-sm shadow-lg active:scale-95 transition-all flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer relative backdrop-blur-md"
               >
@@ -682,17 +678,14 @@ const MusicPlayerPage = ({ songId: propSongId, onBack }) => {
         </div>
 
       </div>
-
-      {/* Mobile View Ambient Mode Button (Instructed Position below player card) */}
       <div className="flex justify-center mt-3 sm:hidden relative z-20">
         <button
           type="button"
           onClick={() => setAmbientEnabled(!ambientEnabled)}
-          className={`px-4 py-2 rounded-xl text-xs font-semibold border transition-all flex items-center gap-1.5 cursor-pointer backdrop-blur-md shadow-lg ${
-            ambientEnabled 
-              ? 'bg-purple-500/25 text-purple-200 border-purple-400/40 shadow-lg shadow-purple-500/20' 
+          className={`px-4 py-2 rounded-xl text-xs font-semibold border transition-all flex items-center gap-1.5 cursor-pointer backdrop-blur-md shadow-lg ${ambientEnabled
+              ? 'bg-purple-500/25 text-purple-200 border-purple-400/40 shadow-lg shadow-purple-500/20'
               : 'bg-white/5 text-white/50 border-white/10 hover:text-white'
-          }`}
+            }`}
           title="Toggle Full-Page Ambient Artwork Lighting"
         >
           <SunMedium className={`w-3.5 h-3.5 ${ambientEnabled ? 'text-amber-300 animate-pulse' : 'text-white/40'}`} />

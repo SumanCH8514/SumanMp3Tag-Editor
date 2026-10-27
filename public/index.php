@@ -4,7 +4,7 @@ header('Cross-Origin-Resource-Policy: cross-origin');
 
 $playId = isset($_GET['play']) ? preg_replace('/[^a-zA-Z0-9_-]/', '', $_GET['play']) : (isset($_GET['id']) ? preg_replace('/[^a-zA-Z0-9_-]/', '', $_GET['id']) : '');
 
-$pageTitle = "SumanMp3Tag Editor - Online MP3 Tag & Cover Art Editor";
+$pageTitle = "SumanMp3Tag - Online MP3 Tag & Cover Art Editor";
 $siteName = "SumanMp3Tag Player";
 $description = "Edit MP3 ID3 tags, title, artist, album, cover art watermarks online.";
 $coverUrl = "";

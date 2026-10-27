@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { Search, Music, Download, ExternalLink, Calendar, Trash2, Share2, Check, Play, Lock, ShieldAlert, KeyRound } from 'lucide-react';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect, useRef } from 'react';
+import { Search, Music, Download, ExternalLink, Calendar, Trash2, Share2, Check, Play, Lock, ShieldAlert, KeyRound, ShieldCheck, ArrowLeft, Eye, EyeOff, AlertCircle, Delete } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import toast from 'react-hot-toast';
 import { getValidCoverUrl, getApiUrl } from '../utils/lrclib';
 
 const ENCRYPTED_PIN_HASH = '6bf76be895daa81eecd02713d3fb73d1f5215d48720a139479234c293e88d26a';
@@ -14,12 +15,15 @@ const computeSha256 = async (str) => {
   return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 };
 
-const FileBrowser = ({ onPlaySong }) => {
+const FileBrowser = ({ onPlaySong, onBack }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
     return sessionStorage.getItem('suman_files_pin_auth') === ENCRYPTED_PIN_HASH;
   });
-  const [pinInput, setPinInput] = useState('');
+  const [pinDigits, setPinDigits] = useState(['', '', '', '']);
+  const [showPin, setShowPin] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
   const [pinError, setPinError] = useState(false);
+  const inputRefs = useRef([]);
 
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -32,6 +36,8 @@ const FileBrowser = ({ onPlaySong }) => {
   useEffect(() => {
     if (isAuthenticated) {
       fetchFiles();
+    } else {
+      inputRefs.current[0]?.focus();
     }
   }, [isAuthenticated]);
 
@@ -49,9 +55,115 @@ const FileBrowser = ({ onPlaySong }) => {
     }
   };
 
-  const handlePinSubmit = async (e) => {
-    if (e) e.preventDefault();
-    await handleVerifyPin(pinInput);
+  const handleDigitChange = async (index, val) => {
+    const cleanChar = val.replace(/[^0-9]/g, '').slice(-1);
+    const nextDigits = [...pinDigits];
+    nextDigits[index] = cleanChar;
+    setPinDigits(nextDigits);
+    setPinError(false);
+
+    if (cleanChar && index < 3) {
+      inputRefs.current[index + 1]?.focus();
+    }
+
+    if (cleanChar && index === 3) {
+      const fullPin = nextDigits.join('');
+      if (fullPin.length === 4) {
+        await verifyAndSubmit(fullPin);
+      }
+    }
+  };
+
+  const handleKeyDown = async (index, e) => {
+    if (e.key === 'Backspace') {
+      if (!pinDigits[index] && index > 0) {
+        const nextDigits = [...pinDigits];
+        nextDigits[index - 1] = '';
+        setPinDigits(nextDigits);
+        inputRefs.current[index - 1]?.focus();
+      } else {
+        const nextDigits = [...pinDigits];
+        nextDigits[index] = '';
+        setPinDigits(nextDigits);
+      }
+      setPinError(false);
+    } else if (e.key === 'ArrowLeft' && index > 0) {
+      inputRefs.current[index - 1]?.focus();
+    } else if (e.key === 'ArrowRight' && index < 3) {
+      inputRefs.current[index + 1]?.focus();
+    }
+  };
+
+  const handlePaste = async (e) => {
+    e.preventDefault();
+    const pasteData = e.clipboardData.getData('text').replace(/[^0-9]/g, '').slice(0, 4);
+    if (!pasteData) return;
+    const newDigits = ['', '', '', ''];
+    for (let i = 0; i < pasteData.length; i++) {
+      newDigits[i] = pasteData[i];
+    }
+    setPinDigits(newDigits);
+    setPinError(false);
+
+    const targetFocus = Math.min(pasteData.length, 3);
+    inputRefs.current[targetFocus]?.focus();
+
+    if (pasteData.length === 4) {
+      await verifyAndSubmit(pasteData);
+    }
+  };
+
+  const handleKeypadPress = async (numStr) => {
+    const emptyIndex = pinDigits.findIndex(d => d === '');
+    if (emptyIndex !== -1) {
+      const nextDigits = [...pinDigits];
+      nextDigits[emptyIndex] = numStr;
+      setPinDigits(nextDigits);
+      setPinError(false);
+
+      if (emptyIndex < 3) {
+        inputRefs.current[emptyIndex + 1]?.focus();
+      } else {
+        const fullPin = nextDigits.join('');
+        if (fullPin.length === 4) {
+          await verifyAndSubmit(fullPin);
+        }
+      }
+    }
+  };
+
+  const handleKeypadBackspace = () => {
+    let lastFilledIndex = -1;
+    for (let i = 3; i >= 0; i--) {
+      if (pinDigits[i] !== '') {
+        lastFilledIndex = i;
+        break;
+      }
+    }
+    if (lastFilledIndex !== -1) {
+      const nextDigits = [...pinDigits];
+      nextDigits[lastFilledIndex] = '';
+      setPinDigits(nextDigits);
+      inputRefs.current[lastFilledIndex]?.focus();
+      setPinError(false);
+    }
+  };
+
+  const handleClearPin = () => {
+    setPinDigits(['', '', '', '']);
+    setPinError(false);
+    inputRefs.current[0]?.focus();
+  };
+
+  const verifyAndSubmit = async (codeToVerify) => {
+    const pin = codeToVerify || pinDigits.join('');
+    if (pin.length !== 4) return;
+    setIsVerifying(true);
+    const success = await handleVerifyPin(pin);
+    setIsVerifying(false);
+    if (!success) {
+      inputRefs.current[3]?.focus();
+    }
   };
 
   const fetchFiles = async () => {
@@ -171,6 +283,7 @@ const FileBrowser = ({ onPlaySong }) => {
     if (navigator.clipboard) {
       navigator.clipboard.writeText(fullShareMessage);
       setCopiedId(fileItem.id);
+      toast.success("Share link copied to clipboard!");
       setTimeout(() => setCopiedId(null), 2500);
     }
   };
@@ -206,65 +319,186 @@ const FileBrowser = ({ onPlaySong }) => {
   });
 
   if (!isAuthenticated) {
+    const enteredCount = pinDigits.filter(Boolean).length;
     return (
-      <div className="flex flex-col items-center justify-center py-12 px-4 min-h-[50vh]">
+      <div className="flex flex-col items-center justify-center py-2 sm:py-4 px-4 min-h-[calc(100vh-140px)]">
         <motion.div 
-          initial={{ opacity: 0, scale: 0.9, y: 20 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          className={`w-full max-w-md p-8 rounded-3xl bg-slate-900/90 border ${
-            pinError ? 'border-red-500/60 shadow-[0_0_35px_rgba(239,68,68,0.35)]' : 'border-white/15 shadow-[0_25px_60px_rgba(0,0,0,0.7)]'
-          } backdrop-blur-3xl text-center relative overflow-hidden transition-all duration-300`}
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="w-full max-w-sm sm:max-w-md relative"
         >
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500 via-pink-500 to-rose-500 flex items-center justify-center mx-auto mb-5 shadow-lg shadow-purple-500/30 border border-white/20">
-            <Lock className="w-8 h-8 text-white" />
-          </div>
+          <div className="absolute -inset-1 rounded-3xl bg-gradient-to-r from-violet-600/20 via-indigo-600/20 to-purple-600/20 blur-xl opacity-60 pointer-events-none" />
 
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-white mb-2 tracking-tight">
-            Protected Access
-          </h2>
-          <p className="text-xs sm:text-sm text-white/60 mb-6 font-medium">
-            Enter security PIN to access Uploaded Files.
-          </p>
-
-          <form onSubmit={handlePinSubmit} className="space-y-5">
-            <div className="relative">
-              <input 
-                type="password"
-                maxLength={4}
-                value={pinInput}
-                onChange={async (e) => {
-                  const val = e.target.value.replace(/[^0-9]/g, '');
-                  setPinInput(val);
-                  setPinError(false);
-                  if (val.length === 4) {
-                    await handleVerifyPin(val);
-                  }
-                }}
-                placeholder="• • • •"
-                className="w-full text-center text-3xl font-mono tracking-[0.6em] py-3.5 px-4 bg-white/5 border border-white/15 rounded-2xl text-white placeholder-white/20 focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-500/20 transition-all shadow-inner"
-                autoFocus
-              />
+          <div className={`relative rounded-3xl bg-slate-900/90 border ${
+            pinError ? 'border-rose-500/50 shadow-[0_0_35px_rgba(244,63,94,0.25)]' : 'border-white/10 shadow-[0_25px_60px_rgba(0,0,0,0.6)]'
+          } backdrop-blur-2xl p-5 sm:p-7 transition-all`}>
+            
+            <div className="flex items-center justify-between mb-4 pb-3 border-b border-white/[0.08]">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="text-[10px] sm:text-[11px] font-mono font-medium text-slate-300 tracking-wider uppercase">
+                  Studio Cloud Vault
+                </span>
+              </div>
+              {onBack && (
+                <button
+                  type="button"
+                  onClick={onBack}
+                  className="text-xs text-slate-400 hover:text-white transition-colors flex items-center gap-1 cursor-pointer"
+                >
+                  <ArrowLeft className="w-3.5 h-3.5" />
+                  <span>Editor</span>
+                </button>
+              )}
             </div>
 
-            {pinError && (
-              <motion.p 
-                initial={{ opacity: 0, y: -5 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="text-xs font-bold text-red-400 flex items-center justify-center gap-1.5"
-              >
-                <ShieldAlert className="w-4 h-4" />
-                Invalid PIN. Access Unauthorized.
-              </motion.p>
-            )}
+            <div className="text-center mb-4">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-b from-violet-500/20 to-indigo-500/10 border border-violet-500/30 flex items-center justify-center mx-auto mb-3 shadow-inner text-violet-300">
+                <ShieldCheck className="w-6 h-6" />
+              </div>
+              <h2 className="text-lg sm:text-xl font-bold text-white tracking-tight">
+                Protected Audio Vault
+              </h2>
+              <p className="text-xs text-slate-400 mt-1 max-w-xs mx-auto leading-relaxed">
+                Enter your 4-digit security PIN to access cloud audio files and library storage.
+              </p>
+            </div>
 
-            <button
-              type="submit"
-              className="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-purple-600 via-pink-600 to-rose-600 hover:from-purple-500 hover:to-rose-500 text-white font-bold text-sm shadow-lg shadow-purple-500/25 active:scale-95 transition-all cursor-pointer flex items-center justify-center gap-2"
-            >
-              <KeyRound className="w-4 h-4" />
-              <span>Unlock Access</span>
-            </button>
-          </form>
+            <div className="space-y-4">
+              <div 
+                className="flex items-center justify-center gap-2.5 sm:gap-3.5"
+                onPaste={handlePaste}
+              >
+                {[0, 1, 2, 3].map((index) => {
+                  const digit = pinDigits[index];
+                  const isFilled = digit !== '';
+                  return (
+                    <div key={index} className="relative">
+                      <input
+                        ref={(el) => (inputRefs.current[index] = el)}
+                        type={showPin ? "text" : "password"}
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        maxLength={1}
+                        value={digit}
+                        onChange={(e) => handleDigitChange(index, e.target.value)}
+                        onKeyDown={(e) => handleKeyDown(index, e)}
+                        className={`w-12 h-14 sm:w-14 sm:h-16 rounded-xl text-center text-xl sm:text-2xl font-mono font-bold transition-all outline-none cursor-pointer ${
+                          pinError
+                            ? 'bg-rose-500/10 border-2 border-rose-500/70 text-rose-300 shadow-[0_0_15px_rgba(244,63,94,0.2)]'
+                            : isFilled
+                            ? 'bg-violet-500/10 border-2 border-violet-500/60 text-white shadow-[0_0_15px_rgba(139,92,246,0.2)]'
+                            : 'bg-black/30 border border-white/15 text-white focus:border-violet-400 focus:ring-2 focus:ring-violet-500/25'
+                        }`}
+                      />
+                      {!showPin && isFilled && (
+                        <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                          <span className="w-2.5 h-2.5 rounded-full bg-violet-300 shadow-sm" />
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="flex items-center justify-between px-1 text-xs text-slate-400">
+                <button
+                  type="button"
+                  onClick={() => setShowPin(!showPin)}
+                  className="flex items-center gap-1.5 hover:text-white transition-colors cursor-pointer"
+                >
+                  {showPin ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                  <span>{showPin ? 'Mask PIN' : 'Reveal PIN'}</span>
+                </button>
+
+                {enteredCount > 0 && (
+                  <button
+                    type="button"
+                    onClick={handleClearPin}
+                    className="hover:text-rose-300 transition-colors cursor-pointer"
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
+
+              <AnimatePresence>
+                {pinError && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -6 }}
+                    className="p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/25 text-rose-300 text-xs flex items-center justify-center gap-2"
+                  >
+                    <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+                    <span className="font-medium">Incorrect PIN. Access denied.</span>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              <div className="grid grid-cols-3 gap-1.5 sm:gap-2 pt-1">
+                {['1', '2', '3', '4', '5', '6', '7', '8', '9'].map((num) => (
+                  <button
+                    key={num}
+                    type="button"
+                    onClick={() => handleKeypadPress(num)}
+                    className="h-9 sm:h-10 rounded-lg sm:rounded-xl bg-white/[0.03] hover:bg-white/[0.08] active:bg-violet-600/30 border border-white/[0.07] hover:border-white/15 text-white font-mono text-sm sm:text-base font-semibold transition-all active:scale-95 cursor-pointer flex items-center justify-center shadow-sm"
+                  >
+                    {num}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  onClick={handleClearPin}
+                  className="h-9 sm:h-10 rounded-lg sm:rounded-xl bg-white/[0.02] hover:bg-white/[0.06] border border-white/[0.05] text-slate-400 hover:text-white text-xs font-medium transition-all active:scale-95 cursor-pointer flex items-center justify-center"
+                >
+                  Clear
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleKeypadPress('0')}
+                  className="h-9 sm:h-10 rounded-lg sm:rounded-xl bg-white/[0.03] hover:bg-white/[0.08] active:bg-violet-600/30 border border-white/[0.07] hover:border-white/15 text-white font-mono text-sm sm:text-base font-semibold transition-all active:scale-95 cursor-pointer flex items-center justify-center shadow-sm"
+                >
+                  0
+                </button>
+                <button
+                  type="button"
+                  onClick={handleKeypadBackspace}
+                  className="h-9 sm:h-10 rounded-lg sm:rounded-xl bg-white/[0.02] hover:bg-white/[0.06] border border-white/[0.05] text-slate-400 hover:text-rose-300 text-xs font-medium transition-all active:scale-95 cursor-pointer flex items-center justify-center"
+                  aria-label="Delete last digit"
+                >
+                  <Delete className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="pt-1">
+                <button
+                  type="button"
+                  disabled={enteredCount !== 4 || isVerifying}
+                  onClick={() => verifyAndSubmit()}
+                  className={`w-full py-2.5 sm:py-3 px-6 rounded-xl font-semibold text-xs tracking-wide uppercase transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg ${
+                    enteredCount === 4
+                      ? 'bg-violet-600 hover:bg-violet-500 text-white shadow-violet-500/25 active:scale-[0.98]'
+                      : 'bg-white/[0.05] text-slate-500 border border-white/[0.06] cursor-not-allowed shadow-none'
+                  }`}
+                >
+                  {isVerifying ? (
+                    <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <KeyRound className="w-4 h-4" />
+                  )}
+                  <span>{isVerifying ? 'Verifying...' : 'Unlock Audio Vault'}</span>
+                </button>
+              </div>
+
+              <div className="pt-1 text-center">
+                <p className="text-[10px] sm:text-[11px] text-slate-500 flex items-center justify-center gap-1.5">
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-500/70" />
+                  <span>SHA-256 Zero-Knowledge Verification • Session Locked</span>
+                </p>
+              </div>
+            </div>
+          </div>
         </motion.div>
       </div>
     );

@@ -266,8 +266,6 @@ const BatchMetadataEditor = () => {
                     </div>
                 </div>
             )}
-
-            {/* REFINED BATCH EDIT MODAL */}
             <AnimatePresence>
                 {showModal && (
                     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
@@ -285,7 +283,6 @@ const BatchMetadataEditor = () => {
                             exit={{ opacity: 0, scale: 0.95, y: 20 }}
                             className="relative w-full max-w-4xl max-h-[95vh] bg-gradient-to-b from-slate-900 to-black rounded-[32px] border border-white/10 shadow-3xl overflow-hidden flex flex-col"
                         >
-                            {/* Fixed Modal Header */}
                             <div className="p-6 md:p-8 border-b border-white/5 flex items-center justify-between flex-shrink-0">
                                 <h2 className="text-xl md:text-2xl font-bold flex items-center gap-3">
                                     <div className="p-2 bg-purple-500/20 rounded-lg">
@@ -300,18 +297,15 @@ const BatchMetadataEditor = () => {
                                 )}
                             </div>
 
-                            {/* Scrollable Modal Content */}
                             <div className="p-6 md:p-8 overflow-y-auto custom-scrollbar flex-1">
 
                                 <div className="flex flex-col md:flex-row gap-8">
-                                    {/* LEFT: Watermark Section */}
                                     <div className="w-full md:w-1/3 space-y-6">
                                         <div className="aspect-square rounded-3xl bg-black/40 border border-white/10 flex flex-col items-center justify-center relative overflow-hidden group">
                                             <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-transparent" />
                                             <Wand2 className="w-16 h-16 text-white/10 mb-4" />
                                             <p className="text-xs font-bold text-white/30 tracking-widest uppercase">Cover Overlay</p>
 
-                                            {/* Real-time Watermark Simulation */}
                                             <AnimatePresence>
                                                 {batchOptions.watermark.enabled && (
                                                     <motion.div
@@ -392,7 +386,6 @@ const BatchMetadataEditor = () => {
                                         </div>
                                     </div>
 
-                                    {/* RIGHT: Data Fields Section */}
                                     <div className="flex-1 space-y-5">
                                         <div className="bg-purple-500/10 border border-purple-500/20 rounded-2xl p-4 mb-2">
                                             <p className="text-xs text-purple-200">
@@ -442,7 +435,6 @@ const BatchMetadataEditor = () => {
                                     </div>
                                 </div>
 
-                                {/* Progress Bar */}
                                 {isProcessing && (
                                     <div className="mt-8 space-y-2">
                                         <div className="flex justify-between text-xs font-bold mb-1">
@@ -460,7 +452,6 @@ const BatchMetadataEditor = () => {
                                 )}
                             </div>
 
-                            {/* Fixed Modal Footer */}
                             <div className="p-6 md:p-8 border-t border-white/5 bg-black/20 flex flex-col sm:flex-row gap-4 items-center justify-end flex-shrink-0">
                                 <button
                                     onClick={() => !isProcessing && setShowModal(false)}

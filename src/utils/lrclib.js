@@ -1,12 +1,4 @@
-/**
- * Multi-Server Lyrics & Metadata Utility with Robust Multi-Provider Pipeline
- * Metadata Providers: Apple iTunes Store API (Primary) ➔ LRCLIB Database (Fallback)
- * Lyrics Providers:
- * S1: LRCLIB (Direct Match ➔ Fuzzy Search Engine with Dual-Script Extraction)
- * S2: Lyrics.ovh API Engine (Plain Text Database)
- * S3: LrcSearch Engine (LRCLIB Title & Keyword Search Engine)
- * S4: Global Multi-Provider Search Engine (Backup)
- */
+export const isNonLatinScript = (text) => /[\u0900-\u097F\u0600-\u06FF\u4E00-\u9FFF\u3040-\u30FF\uAC00-\uD7AF]/.test(text || '');
 
 export const SERVERS = [
   { id: 'S1', name: 'LRCLIB', label: 'LRCLIB', desc: 'LRCLIB Engine (Dual Synced & Plain Script Extraction)' },

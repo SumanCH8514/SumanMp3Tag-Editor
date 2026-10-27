@@ -1,95 +1,109 @@
-# 🎵 SumanMp3Tag Editor
+# 🎵 SumanMp3Tag
 
-> **A modern, high-performance, and privacy-focused web application for MP3 metadata editing, cover art watermarking, lyrics synchronization, and music sharing.**
+> **A modern, high-performance, and privacy-focused web application for client-side MP3 metadata editing, cover art watermarking, synced lyrics, and music sharing.**
 
-[![React](https://img.shields.io/badge/React-18.x-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
-[![Vite](https://img.shields.io/badge/Vite-5.x-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
-[![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-3.x-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
+[![React](https://img.shields.io/badge/React-19.x-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
+[![Vite](https://img.shields.io/badge/Vite-7.x-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
+[![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-4.x-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
 [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
 
 ---
 
 ## 📖 Overview
 
-**SumanMp3Tag Editor** is a state-of-the-art web application built for music collectors, producers, and audio managers. It provides a seamless, professional environment to inspect, edit, organize ID3 tags, and share music through a dedicated, interactive music player interface.
+**SumanMp3Tag** is a studio-grade web application engineered for audiophiles, producers, and music collectors. It enables users to inspect, edit, organize ID3v2 metadata, watermark high-resolution album cover art, and synchronize LRC lyrics directly in the browser with 100% data privacy.
 
-By leveraging 100% browser-based audio processing, your files remain completely private and never leave your local device unless uploaded.
+The application operates entirely on the client side using modern Web APIs and WebAssembly. Audio files are processed locally in browser memory without mandatory server uploads, delivering instantaneous performance and absolute security.
 
 ---
 
 ## ✨ Features
 
-- **⚡ Client-Side Processing**: Fast ID3 tag reading and writing with zero server uploads required.
-- **🎧 Shared Music Player Page**: Interactive music player page (`?play=ID`) displaying high-res artwork, title, artist, album metadata, scrubbable seek bar, 10s skip controls, volume slider, loop mode, and direct MP3 download.
-- **🔗 One-Click Music Sharing**: Share button placed directly in the Uploaded Files list to generate shareable player links.
-- **🎨 Fetch Artwork Online**: Dedicated high-definition (600x600) music album cover art retrieval powered by Apple iTunes Store API and Base64 CORS proxying.
-- **🔍 Multi-Server Lyrics Engine**: Fetch synced (LRC) and plain text lyrics across **LRCLIB**, **LyricsOVH**, **LrcSearch**, and **Global** search engines.
-- **🔤 Dual-Script Prioritization**: Automatically prioritizes English/Romanized lyrics while preserving access to native script versions.
-- **✨ Auto Fetch Details**: Instantly retrieves missing track metadata (Artists, Album, Release Year, and Genre) using multi-stage query pipelines with handle sanitization.
-- **🖼️ Cover Art Studio & Watermarking**: Upload high-res cover art and apply dynamic, customizable text watermarks with real-time preview.
-- **📦 Batch Metadata Editor**: Edit, rename, and process multiple tracks or full albums simultaneously.
-- **🏷️ Library Branding & Sanitization**: Enforce consistent tag suffixes and clean OS-compliant file naming.
-- **📱 Fully Responsive UI**: Glassmorphic dark theme powered by Tailwind CSS and Framer Motion micro-animations.
+- **⚡ 100% In-Browser Audio Tagging**: Fast, lossless reading and writing of ID3v2 tags (`browser-id3-writer`, `jsmediatags`) without transmitting audio to external servers.
+- **🖼️ High-Resolution Cover Art Studio**: Upload custom artwork or retrieve 600×600 HD covers via Apple iTunes Store integration with automated CORS proxying.
+- **💧 Dynamic Watermark Overlay**: Embed customizable text watermarks into album art with position (Top, Center, Bottom) and color (Yellow, White, Red, Black) controls.
+- **🔍 Multi-Engine Lyrics Studio**: Search, fetch, and synchronize lyrics across **LRCLIB**, **LyricsOVH**, **LrcSearch**, and **Global** engines with Devanagari script detection and English prioritization.
+- **🪄 Intelligent Auto-Fill**: One-click track metadata enrichment that automatically pulls missing Artists, Album names, Release Years, and Genres.
+- **📦 Batch Processing Studio**: Edit, rename, watermark, and export entire albums or multiple files in a unified batch pipeline.
+- **🎧 Interactive Web Music Player**: Shareable music player pages (`?play=ID`) featuring interactive seek controls, 10s skip buttons, responsive volume slider, loop modes, and ambient artwork backlighting.
+- **🔒 Studio Audio Vault**: Protected audio repository equipped with a tactile PIN pad and 4-digit security code access.
+- **🔔 Non-Intrusive Notifications**: Responsive toast alerts powered by `react-hot-toast` that stay on a single clean line without shifting page layouts.
 
 ---
 
 ## 🛠️ Tech Stack
 
-| Category | Technologies |
-| :--- | :--- |
-| **Frontend Framework** | [React 18](https://react.dev/) |
-| **Build Tooling** | [Vite](https://vitejs.dev/) |
-| **Styling & Icons** | [Tailwind CSS](https://tailwindcss.com/), [Lucide React](https://lucide.dev/) |
-| **Animations** | [Framer Motion](https://www.framer.com/motion/) |
-| **Metadata Processing** | `browser-id3-writer`, `jsmediatags` |
-| **Backend API** | PHP (`upload.php`, `list_files.php`, `get_song.php`, `delete_file.php`) |
-| **Music APIs** | Apple iTunes Store API, LRCLIB API, Lyrics.ovh API |
+### Frontend & Architecture
+- **Framework**: [React 19](https://react.dev/)
+- **Build Tool**: [Vite 7](https://vitejs.dev/)
+- **Styling**: [Tailwind CSS 4](https://tailwindcss.com/)
+- **Motion & Animations**: [Framer Motion](https://www.framer.com/motion/)
+- **Icons**: [Lucide React](https://lucide.dev/)
+- **Notifications**: [React Hot Toast](https://react-hot-toast.com/)
+
+### Audio & Tagging Engines
+- **Tag Encoding**: `browser-id3-writer`
+- **Tag Parsing**: `jsmediatags`
+- **Dropzone**: `react-dropzone`
+
+### Backend & Cloud APIs
+- **Backend Handlers**: PHP (`upload.php`, `get_song.php`, `list_files.php`, `delete_file.php`)
+- **Metadata APIs**: Apple iTunes Search API, LRCLIB API, Lyrics.ovh API
 
 ---
 
-## 📸 Demo & Preview
+## 📸 Demo & Screenshots
 
-![SumanMp3Tag Editor Preview](public/project_poster.png)
+![SumanMp3Tag Application Preview](public/project_poster.png)
 
 ---
 
 ## 🚀 Installation & Setup
 
-Follow these steps to run **SumanMp3Tag Editor** locally on your machine.
-
 ### Prerequisites
-- **Node.js** (v18.0.0 or higher)
-- **npm** or **yarn**
+- [Node.js](https://nodejs.org/) (version 18.0.0 or higher)
+- [npm](https://www.npmjs.com/) (version 9.0.0 or higher)
 
 ### Step-by-Step Commands
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/SumanCH8514/SumanMp3Tag-Editor.git
+git clone https://github.com/SumanCH8514/mp3-metadata-editor.git
 
 # 2. Navigate to the project directory
-cd SumanMp3Tag-Editor
+cd mp3-metadata-editor
 
-# 3. Install project dependencies
+# 3. Install dependencies
 npm install
 
-# 4. Start the development server
+# 4. Start the local development server
 npm run dev
 ```
 
-Open your browser and navigate to `http://localhost:5173`.
+Open your browser and navigate to `http://localhost:5173/SumanMp3Tag/`.
 
 ---
 
-## 💡 Usage
+## 💡 Usage Guide
 
-1. **Upload Audio File**: Drag & drop or select an MP3 file on the home screen.
-2. **Auto-Fetch Details**: Click **Auto Fetch Details** to populate missing track information from Apple iTunes.
-3. **Fetch Artwork Online**: Click **Fetch Artwork Online** to load HD 600x600 album artwork directly into your preview.
-4. **Fetch Lyrics**: Use the **Lyrics Panel** to search and toggle between **LRC (Synced)** and **Plain** text lyrics.
-5. **Watermark Cover**: Add custom watermarks to your cover artwork with customizable position and color.
-6. **Share Music Link**: Open **View Files** and click **Share** to copy a shareable link to the interactive **Music Player Page**.
-7. **Save & Export**: Click **Save & Download** to generate your updated, tagged MP3 file.
+### 1. Tagging a Single Track
+1. Drag and drop or select an MP3 file into the **Dropzone**.
+2. Click **Auto-Fill** to automatically detect and populate missing fields from online music databases.
+3. Click **Fetch Apple HD Artwork** to load original high-res album covers.
+4. Select watermark options and click **Apply Watermark**.
+5. Fetch and edit LRC synchronized lyrics in the **Lyrics Studio**.
+6. Click **Save & Download** to download the tagged MP3, or click **Upload and Share** to generate a public player link.
+
+### 2. Batch Processing
+1. Navigate to the **Batch Editor** tab.
+2. Select multiple MP3 tracks or entire albums.
+3. Define default metadata fields, watermarks, or naming rules.
+4. Process all tracks in parallel with real-time progress indicators.
+
+### 3. Managing Stored Audio
+1. Navigate to **View Files**.
+2. Enter your security PIN on the interactive audio vault keypad.
+3. Stream, share, inspect, or manage stored audio files.
 
 ---
 
@@ -97,49 +111,52 @@ Open your browser and navigate to `http://localhost:5173`.
 
 ```
 mp3-metadata-editor/
-├── public/                 # Static assets, PHP backend API, and project posters
-│   ├── delete_file.php     # Delete file endpoint
-│   ├── get_song.php        # Get single song endpoint for player
-│   ├── list_files.php      # File listing endpoint
-│   └── upload.php          # File upload endpoint
+├── public/                     # Static assets & PHP storage endpoints
+│   ├── delete_file.php         # Secure file deletion handler
+│   ├── get_song.php            # Song retrieval for music player
+│   ├── list_files.php          # Protected files catalog handler
+│   ├── upload.php              # Real-time progress upload handler
+│   ├── favicon.png             # Application brand icon
+│   └── project_poster.png      # High-res application poster
 ├── src/
-│   ├── components/         # Modular React UI components
-│   │   ├── BatchMetadataEditor.jsx
-│   │   ├── Dropzone.jsx
-│   │   ├── FileBrowser.jsx
-│   │   ├── FileItem.jsx
-│   │   ├── Layout.jsx
-│   │   ├── MetadataEditor.jsx
-│   │   └── MusicPlayerPage.jsx
-│   ├── utils/              # Metadata & API utility engines
-│   │   ├── lrclib.js       # Lyrics & iTunes metadata engines
-│   │   ├── metadata.js     # ID3 tag reader & writer utilities
-│   │   └── watermark.js    # Canvas cover watermarking engine
-│   ├── App.jsx             # Main Application Routing & State
-│   ├── main.jsx            # React DOM Entrypoint
-│   └── index.css           # Tailwind & Glassmorphism styles
-├── index.html              # HTML5 Entrypoint & Metadata
-├── package.json            # Project dependencies & scripts
-└── vite.config.js          # Vite build configuration
+│   ├── components/             # Reusable UI component architecture
+│   │   ├── BatchMetadataEditor.jsx  # Multi-track batch tagger & watermark manager
+│   │   ├── Dropzone.jsx             # Drag-and-drop audio file importer
+│   │   ├── FileBrowser.jsx          # Protected PIN audio vault & file catalog
+│   │   ├── FileItem.jsx             # Individual track item display
+│   │   ├── Layout.jsx               # Universal application shell, nav & footer
+│   │   ├── MetadataEditor.jsx       # Studio single-track tagger & lyrics engine
+│   │   └── MusicPlayerPage.jsx      # Standalone shareable web music player
+│   ├── utils/                  # Core audio & metadata logic
+│   │   ├── lrclib.js           # Multi-engine lyrics & iTunes metadata fetcher
+│   │   ├── metadata.js         # Client-side ID3 read/write processing
+│   │   └── watermark.js        # HTML5 Canvas cover art watermarking
+│   ├── App.jsx                 # Application state, router & toast configuration
+│   ├── index.css               # Design system tokens & Tailwind styles
+│   └── main.jsx                # React root entrypoint
+├── index.html                  # HTML5 template with SEO & OpenGraph tags
+├── package.json                # Project dependencies & scripts
+├── tailwind.config.js          # Design system theme configuration
+└── vite.config.js              # Vite bundling & server configuration
 ```
 
 ---
 
 ## 🤝 Contributing
 
-Contributions are welcome! If you'd like to improve SumanMp3Tag Editor:
+Contributions, issues, and feature requests are welcome!
 
-1. Fork the repository (`https://github.com/SumanCH8514/SumanMp3Tag-Editor.git`).
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`).
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`).
-4. Push to the branch (`git push origin feature/AmazingFeature`).
-5. Open a Pull Request.
+1. Fork the Project: `https://github.com/SumanCH8514/mp3-metadata-editor`
+2. Create your Feature Branch: `git checkout -b feature/NewFeature`
+3. Commit your Changes: `git commit -m 'Add NewFeature'`
+4. Push to the Branch: `git push origin feature/NewFeature`
+5. Open a Pull Request
 
 ---
 
 ## 📄 License
 
-This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
+Distributed under the **MIT License**. See `LICENSE` for more information.
 
 ---
 
