@@ -2,7 +2,7 @@ import jsmediatags from 'jsmediatags/dist/jsmediatags.min.js';
 import { ID3Writer } from 'browser-id3-writer';
 
 export const readTags = (file) => {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     jsmediatags.read(file, {
       onSuccess: (tag) => {
         const { tags } = tag;

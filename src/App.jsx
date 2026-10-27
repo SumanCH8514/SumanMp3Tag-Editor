@@ -7,6 +7,7 @@ import MetadataEditor from './components/MetadataEditor';
 import BatchMetadataEditor from './components/BatchMetadataEditor';
 import FileBrowser from './components/FileBrowser';
 import MusicPlayerPage from './components/MusicPlayerPage';
+import Pagination from './components/Pagination';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, Layers, Music, Disc3, ShieldCheck, Tag, ArrowRight, Wand2, FileText, CheckCircle2, FolderOpen, Headphones, ChevronRight } from 'lucide-react';
 
@@ -28,6 +29,8 @@ function App() {
   const [editingFileId, setEditingFileId] = useState(null);
   const [sharedSongId, setSharedSongId] = useState(null);
   const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' ? window.innerWidth < 768 : false);
+  const [queuePage, setQueuePage] = useState(1);
+  const QUEUE_PAGE_SIZE = 10;
   
   const previousViewRef = useRef('files');
 
@@ -404,7 +407,7 @@ function App() {
                       </div>
 
                       <div className="flex flex-col gap-3 min-w-0 w-full">
-                        {files.map((item) => (
+                        {files.slice((Math.min(queuePage, Math.max(1, Math.ceil(files.length / QUEUE_PAGE_SIZE))) - 1) * QUEUE_PAGE_SIZE, Math.min(queuePage, Math.max(1, Math.ceil(files.length / QUEUE_PAGE_SIZE))) * QUEUE_PAGE_SIZE).map((item) => (
                           <div key={item.id} className="w-full min-w-0">
                             <FileItem 
                               file={item.file}
@@ -415,6 +418,13 @@ function App() {
                           </div>
                         ))}
                       </div>
+
+                      <Pagination 
+                        currentPage={Math.min(queuePage, Math.max(1, Math.ceil(files.length / QUEUE_PAGE_SIZE)))}
+                        totalItems={files.length}
+                        pageSize={QUEUE_PAGE_SIZE}
+                        onPageChange={setQueuePage}
+                      />
                     </div>
                   )}
                 </motion.div>

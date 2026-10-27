@@ -146,7 +146,7 @@ mp3-metadata-editor/
 
 Contributions, issues, and feature requests are welcome!
 
-1. Fork the Project: `https://github.com/SumanCH8514/mp3-metadata-editor`
+1. Fork the Project: `https://github.com/SumanCH8514/SumanMp3Tag-Editor`
 2. Create your Feature Branch: `git checkout -b feature/NewFeature`
 3. Commit your Changes: `git commit -m 'Add NewFeature'`
 4. Push to the Branch: `git push origin feature/NewFeature`

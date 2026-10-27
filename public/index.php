@@ -9,9 +9,12 @@ $siteName = "SumanMp3Tag Player";
 $description = "Edit MP3 ID3 tags, title, artist, album, cover art watermarks online.";
 $coverUrl = "";
 
-$isSecure = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https');
+$isSecure = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') || (isset($_SERVER['HTTP_CF_VISITOR']) && strpos($_SERVER['HTTP_CF_VISITOR'], 'https') !== false) || (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == 443);
 $protocol = $isSecure ? 'https' : 'http';
 $host = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : 'localhost';
+if (strpos($host, 'localhost') === false && strpos($host, '127.0.0.1') === false) {
+    $protocol = 'https';
+}
 $uriDir = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/\\');
 $baseUrl = $protocol . '://' . $host . $uriDir;
 
@@ -58,7 +61,7 @@ if (file_exists($htmlFile)) {
     <title>' . htmlspecialchars($pageTitle) . '</title>
     <meta name="title" content="' . htmlspecialchars($pageTitle) . '" />
     <meta name="description" content="' . htmlspecialchars($description) . '" />
-    <meta property="og:type" content="music.song" />
+    <meta property="og:type" content="website" />
     <meta property="og:url" content="' . htmlspecialchars($fullUrl) . '" />
     <meta property="og:site_name" content="' . htmlspecialchars($siteName) . '" />
     <meta property="og:title" content="' . htmlspecialchars($pageTitle) . '" />
@@ -68,6 +71,8 @@ if (file_exists($htmlFile)) {
     <meta property="og:image:type" content="image/jpeg" />
     <meta property="og:image:width" content="600" />
     <meta property="og:image:height" content="600" />
+    <meta property="og:image:alt" content="' . htmlspecialchars($pageTitle) . '" />
+    <link rel="image_src" href="' . htmlspecialchars($coverUrl) . '" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:url" content="' . htmlspecialchars($fullUrl) . '" />
     <meta name="twitter:title" content="' . htmlspecialchars($pageTitle) . '" />

@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Search, Music, Download, ExternalLink, Calendar, Trash2, Share2, Check, Play, Lock, ShieldAlert, KeyRound, ShieldCheck, ArrowLeft, Eye, EyeOff, AlertCircle, Delete } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { getValidCoverUrl, getApiUrl } from '../utils/lrclib';
+import Pagination from './Pagination';
 
 const ENCRYPTED_PIN_HASH = '6bf76be895daa81eecd02713d3fb73d1f5215d48720a139479234c293e88d26a';
 
@@ -318,6 +319,25 @@ const FileBrowser = ({ onPlaySong, onBack }) => {
     );
   });
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const PAGE_SIZE = 10;
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredFiles.length / PAGE_SIZE));
+  const safeCurrentPage = Math.min(Math.max(1, currentPage), totalPages);
+  const paginatedFiles = useMemo(() => {
+    const startIndex = (safeCurrentPage - 1) * PAGE_SIZE;
+    return filteredFiles.slice(startIndex, startIndex + PAGE_SIZE);
+  }, [filteredFiles, safeCurrentPage]);
+
+  const handlePageChange = (newPage) => {
+    setCurrentPage(newPage);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   if (!isAuthenticated) {
     const enteredCount = pinDigits.filter(Boolean).length;
     return (
@@ -519,7 +539,14 @@ const FileBrowser = ({ onPlaySong, onBack }) => {
       className="space-y-6"
     >
       <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
-        <h2 className="text-2xl font-bold text-white">Uploaded Files</h2>
+        <div className="flex items-center gap-3">
+          <h2 className="text-2xl font-bold text-white tracking-tight">Uploaded Files</h2>
+          {filteredFiles.length > 0 && (
+            <span className="px-2.5 py-0.5 rounded-full bg-white/[0.08] border border-white/10 text-xs font-semibold text-purple-200">
+              {filteredFiles.length}
+            </span>
+          )}
+        </div>
         <div className="relative w-full md:w-96">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
           <input 
@@ -588,7 +615,7 @@ const FileBrowser = ({ onPlaySong, onBack }) => {
             <p>No files found.</p>
           </div>
         ) : (
-          filteredFiles.map((file, index) => (
+          paginatedFiles.map((file, index) => (
             <motion.div 
               key={index}
               initial={{ opacity: 0, y: 20 }}
@@ -711,6 +738,13 @@ const FileBrowser = ({ onPlaySong, onBack }) => {
           ))
         )}
       </div>
+
+      <Pagination 
+        currentPage={safeCurrentPage}
+        totalItems={filteredFiles.length}
+        pageSize={PAGE_SIZE}
+        onPageChange={handlePageChange}
+      />
     </motion.div>
   );
 };
