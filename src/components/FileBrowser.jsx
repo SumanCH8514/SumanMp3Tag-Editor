@@ -664,7 +664,7 @@ const FileBrowser = ({ onPlaySong, onBack }) => {
                 </div>
               </div>
 
-              <div className="w-full md:w-auto flex items-center gap-2 flex-wrap md:flex-nowrap justify-end" onClick={e => e.stopPropagation()}>
+              <div className="w-full md:w-auto flex items-center gap-2 flex-wrap md:flex-nowrap justify-center md:justify-end" onClick={e => e.stopPropagation()}>
                 <button
                   type="button"
                   onClick={(e) => handleShareFile(file, e)}

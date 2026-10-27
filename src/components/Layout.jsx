@@ -259,15 +259,20 @@ const Layout = ({ children, onNavigate, currentView }) => {
         {children}
       </main>
 
-      <footer className={`${isPlayerView ? 'py-1.5 text-[11px]' : 'py-2.5 text-xs'} border-t border-white/[0.08] bg-slate-950/80 backdrop-blur-xl text-center text-slate-400 relative z-20 flex flex-col items-center justify-center gap-1`}>
-        <div className="flex items-center gap-2 text-[11px] text-slate-500">
-          <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+      <footer className={`${isPlayerView ? 'py-1.5 text-[11px]' : 'py-2.5 text-xs'} border-t border-white/[0.08] bg-slate-950/80 backdrop-blur-xl text-center text-slate-400 relative z-20 flex flex-col items-center justify-center gap-1 px-3`}>
+        <div className="hidden sm:flex items-center justify-center gap-1.5 text-[10.5px] sm:text-[11px] text-slate-500 text-center flex-wrap">
+          <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
           <span>Lossless In-Browser Tagging · 100% Privacy Preserved · Zero Server Data Storage</span>
         </div>
-        <p className="text-center">
-          © {new Date().getFullYear()} <a href="https://sumanonline.likesyou.org/SumanMp3Tag/" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors font-medium">SumanMp3Tag</a>.
-          Powered By <a href="https://sumanonline.com/" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors font-medium">SumanOnline.com</a> | All Rights Reserved.
-        </p>
+        <div className="text-center flex flex-col sm:flex-row items-center justify-center sm:gap-1.5 text-slate-400 leading-relaxed">
+          <span>
+            © {new Date().getFullYear()} <a href="https://sumanonline.likesyou.org/SumanMp3Tag/" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors font-medium">SumanMp3Tag</a> | All Rights Reserved
+          </span>
+          <span className="hidden sm:inline">·</span>
+          <span>
+            Powered by <a href="https://sumanonline.com/" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors font-medium">SumanOnline.com</a>
+          </span>
+        </div>
       </footer>
     </div>
   );

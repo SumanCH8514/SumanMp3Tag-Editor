@@ -268,7 +268,7 @@ const BatchMetadataEditor = () => {
             )}
             <AnimatePresence>
                 {showModal && (
-                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-2.5 sm:p-4">
                         <motion.div
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
@@ -281,9 +281,9 @@ const BatchMetadataEditor = () => {
                             initial={{ opacity: 0, scale: 0.95, y: 20 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                            className="relative w-full max-w-4xl max-h-[95vh] bg-gradient-to-b from-slate-900 to-black rounded-[32px] border border-white/10 shadow-3xl overflow-hidden flex flex-col"
+                            className="relative w-full max-w-4xl max-h-[95vh] bg-gradient-to-b from-slate-900 to-black rounded-2xl sm:rounded-[32px] border border-white/10 shadow-3xl overflow-hidden flex flex-col"
                         >
-                            <div className="p-6 md:p-8 border-b border-white/5 flex items-center justify-between flex-shrink-0">
+                            <div className="p-4 sm:p-6 md:p-8 border-b border-white/5 flex items-center justify-between flex-shrink-0">
                                 <h2 className="text-xl md:text-2xl font-bold flex items-center gap-3">
                                     <div className="p-2 bg-purple-500/20 rounded-lg">
                                         <Layers className="w-5 h-5 md:w-6 md:h-6 text-purple-400" />
@@ -297,7 +297,7 @@ const BatchMetadataEditor = () => {
                                 )}
                             </div>
 
-                            <div className="p-6 md:p-8 overflow-y-auto custom-scrollbar flex-1">
+                            <div className="p-4 sm:p-6 md:p-8 overflow-y-auto custom-scrollbar flex-1">
 
                                 <div className="flex flex-col md:flex-row gap-8">
                                     <div className="w-full md:w-1/3 space-y-6">
@@ -452,18 +452,18 @@ const BatchMetadataEditor = () => {
                                 )}
                             </div>
 
-                            <div className="p-6 md:p-8 border-t border-white/5 bg-black/20 flex flex-col sm:flex-row gap-4 items-center justify-end flex-shrink-0">
+                            <div className="p-4 sm:p-6 md:p-8 border-t border-white/5 bg-black/20 flex flex-col sm:flex-row gap-2.5 sm:gap-4 items-center justify-end flex-shrink-0">
                                 <button
                                     onClick={() => !isProcessing && setShowModal(false)}
                                     disabled={isProcessing}
-                                    className="w-full sm:w-auto px-8 py-4 glass-button rounded-2xl font-bold transition-all hover:bg-white/10"
+                                    className="w-full sm:w-auto px-5 sm:px-8 py-3 sm:py-4 glass-button rounded-xl sm:rounded-2xl font-bold text-sm sm:text-base transition-all hover:bg-white/10"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     onClick={() => startBatchProcess('upload')}
                                     disabled={isProcessing}
-                                    className="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white rounded-2xl font-bold shadow-lg shadow-blue-500/20 transition-all flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50"
+                                    className="w-full sm:w-auto px-5 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white rounded-xl sm:rounded-2xl font-bold text-sm sm:text-base shadow-lg shadow-blue-500/20 transition-all flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50"
                                 >
                                     {isProcessing ? <Loader2 className="w-5 h-5 animate-spin" /> : <Share2 className="w-5 h-5" />}
                                     Upload & Share
@@ -471,10 +471,10 @@ const BatchMetadataEditor = () => {
                                 <button
                                     onClick={() => startBatchProcess('download')}
                                     disabled={isProcessing}
-                                    className="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white rounded-2xl font-bold shadow-lg shadow-purple-500/20 transition-all flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50"
+                                    className="w-full sm:w-auto px-5 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white rounded-xl sm:rounded-2xl font-bold text-sm sm:text-base shadow-lg shadow-purple-500/20 transition-all flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50"
                                 >
                                     {isProcessing ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
-                                    {window.innerWidth < 640 ? 'Download' : 'Save & Download'}
+                                    Save & Download
                                 </button>
                             </div>
                         </motion.div>

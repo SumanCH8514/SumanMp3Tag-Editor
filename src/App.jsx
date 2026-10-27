@@ -75,7 +75,12 @@ function App() {
       progress: 0
     }));
 
-    setFiles(prev => [...prev, ...newFileItems]);
+    setFiles(prev => {
+      if (prev.length === 0 && newFileItems.length === 1) {
+        setEditingFileId(newFileItems[0].id);
+      }
+      return [...prev, ...newFileItems];
+    });
   }, []);
 
   const handleEdit = (fileItem) => {
@@ -209,24 +214,24 @@ function App() {
             )}
 
             {!editingItem && files.length > 0 && (
-              <div className="max-w-5xl mx-auto flex items-center justify-between pb-2">
-                <div className="flex items-center gap-2 text-xs text-slate-400">
-                  <span className="font-semibold text-white">Audio Workspace</span>
-                  <ChevronRight className="w-3.5 h-3.5 text-slate-600" />
-                  <span>Queued Tracks</span>
-                  <span className="px-2 py-0.5 rounded-full bg-violet-500/10 border border-violet-500/20 text-violet-300 font-mono">
+              <div className="max-w-5xl mx-auto flex items-center justify-between pb-2 gap-2">
+                <div className="flex items-center gap-1.5 sm:gap-2 text-xs text-slate-400 min-w-0">
+                  <span className="hidden sm:inline font-semibold text-white">Audio Workspace</span>
+                  <ChevronRight className="hidden sm:inline w-3.5 h-3.5 text-slate-600" />
+                  <span className="font-semibold text-white sm:font-normal sm:text-slate-400 truncate">Queued Tracks</span>
+                  <span className="px-2 py-0.5 rounded-full bg-violet-500/10 border border-violet-500/20 text-violet-300 font-mono text-[11px] font-bold flex-shrink-0">
                     {files.length}
                   </span>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-shrink-0">
                   <button
                     type="button"
                     onClick={() => handleNavigate('batch')}
-                    className="px-3 py-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 text-xs font-medium text-slate-300 hover:text-white transition-all flex items-center gap-1.5 cursor-pointer"
+                    className="px-2.5 sm:px-3 py-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 text-xs font-medium text-slate-300 hover:text-white transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
                   >
                     <Layers className="w-3.5 h-3.5 text-violet-400" />
-                    <span>Open in Batch Editor</span>
+                    <span><span className="hidden sm:inline">Open in </span>Batch Editor</span>
                   </button>
                 </div>
               </div>
@@ -261,7 +266,7 @@ function App() {
                       <Dropzone onFilesAdded={handleFilesAdded} />
 
                       <section className="pt-4 max-w-5xl mx-auto">
-                        <div className="flex items-center justify-between mb-6">
+                        <div className="flex flex-col sm:flex-row items-center sm:justify-between mb-6 text-center sm:text-left gap-2 sm:gap-0">
                           <div>
                             <h3 className="text-lg sm:text-xl font-bold text-white tracking-tight">
                               Studio Capabilities
@@ -292,7 +297,7 @@ function App() {
                         </div>
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                          <div className="glass-panel p-5 space-y-3 group hover:border-violet-500/40 transition-all duration-300">
+                          <div className="glass-panel p-5 space-y-3 group hover:border-violet-500/40 transition-all duration-300 flex flex-col items-center sm:items-start text-center sm:text-left">
                             <div className="w-10 h-10 rounded-xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center text-violet-400 group-hover:scale-110 transition-transform">
                               <Wand2 className="w-5 h-5" />
                             </div>
@@ -302,7 +307,7 @@ function App() {
                             </p>
                           </div>
 
-                          <div className="glass-panel p-5 space-y-3 group hover:border-pink-500/40 transition-all duration-300">
+                          <div className="glass-panel p-5 space-y-3 group hover:border-pink-500/40 transition-all duration-300 flex flex-col items-center sm:items-start text-center sm:text-left">
                             <div className="w-10 h-10 rounded-xl bg-pink-500/10 border border-pink-500/20 flex items-center justify-center text-pink-400 group-hover:scale-110 transition-transform">
                               <Disc3 className="w-5 h-5" />
                             </div>
@@ -312,7 +317,7 @@ function App() {
                             </p>
                           </div>
 
-                          <div className="glass-panel p-5 space-y-3 group hover:border-purple-500/40 transition-all duration-300">
+                          <div className="glass-panel p-5 space-y-3 group hover:border-purple-500/40 transition-all duration-300 flex flex-col items-center sm:items-start text-center sm:text-left">
                             <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 group-hover:scale-110 transition-transform">
                               <FileText className="w-5 h-5" />
                             </div>
@@ -322,7 +327,7 @@ function App() {
                             </p>
                           </div>
 
-                          <div className="glass-panel p-5 space-y-3 group hover:border-emerald-500/40 transition-all duration-300">
+                          <div className="glass-panel p-5 space-y-3 group hover:border-emerald-500/40 transition-all duration-300 flex flex-col items-center sm:items-start text-center sm:text-left">
                             <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 group-hover:scale-110 transition-transform">
                               <Layers className="w-5 h-5" />
                             </div>
@@ -333,9 +338,9 @@ function App() {
                           </div>
                         </div>
 
-                        <div className="mt-8 p-4 rounded-2xl bg-white/[0.02] border border-white/[0.06] flex flex-wrap items-center justify-between gap-4">
-                          <div className="flex items-center gap-3">
-                            <div className="p-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+                        <div className="mt-8 p-4 rounded-2xl bg-white/[0.02] border border-white/[0.06] flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
+                          <div className="flex flex-col sm:flex-row items-center gap-3">
+                            <div className="p-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex-shrink-0">
                               <ShieldCheck className="w-5 h-5" />
                             </div>
                             <div>
@@ -344,7 +349,7 @@ function App() {
                             </div>
                           </div>
 
-                          <div className="flex items-center gap-2 text-xs text-slate-400">
+                          <div className="flex items-center justify-center gap-2 text-xs text-slate-400 flex-wrap">
                             <span className="px-2.5 py-1 rounded-md bg-white/[0.04] border border-white/[0.08] font-mono">ID3v2.3</span>
                             <span className="px-2.5 py-1 rounded-md bg-white/[0.04] border border-white/[0.08] font-mono">ID3v2.4</span>
                             <span className="px-2.5 py-1 rounded-md bg-white/[0.04] border border-white/[0.08] font-mono">LRC</span>
@@ -353,25 +358,33 @@ function App() {
                       </section>
                     </>
                   ) : (
-                    <div className="glass-panel p-4 md:p-6 overflow-hidden max-w-5xl mx-auto">
-                      <div className="flex items-center justify-between mb-5 pb-4 border-b border-white/[0.08]">
-                        <div className="flex items-center gap-3">
-                          <h3 className="text-lg font-bold text-white tracking-tight flex items-center gap-2">
+                    <div className="glass-panel p-3.5 sm:p-5 md:p-6 overflow-hidden max-w-5xl mx-auto">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 sm:mb-5 pb-3.5 sm:pb-4 border-b border-white/[0.08]">
+                        <div className="flex items-center justify-between sm:justify-start gap-3">
+                          <h3 className="text-base sm:text-lg font-bold text-white tracking-tight flex items-center gap-2 whitespace-nowrap">
                             <span>Ready to Edit</span>
                             <span className="text-xs font-normal text-slate-400">({files.length} {files.length === 1 ? 'file' : 'files'})</span>
                           </h3>
-                        </div>
 
-                        <div className="flex items-center gap-2.5">
                           <button
                             type="button"
                             onClick={handleClearAll}
-                            className="px-3 py-1.5 rounded-xl bg-white/[0.04] hover:bg-red-500/10 border border-white/10 hover:border-red-500/30 text-xs font-medium text-slate-400 hover:text-red-300 transition-all cursor-pointer"
+                            className="sm:hidden px-2.5 py-1 rounded-lg bg-white/[0.04] hover:bg-red-500/10 border border-white/10 hover:border-red-500/30 text-[11px] font-medium text-slate-400 hover:text-red-300 transition-all cursor-pointer whitespace-nowrap"
+                          >
+                            Clear All
+                          </button>
+                        </div>
+
+                        <div className="flex items-center gap-2.5 w-full sm:w-auto">
+                          <button
+                            type="button"
+                            onClick={handleClearAll}
+                            className="hidden sm:block px-3 py-1.5 rounded-xl bg-white/[0.04] hover:bg-red-500/10 border border-white/10 hover:border-red-500/30 text-xs font-medium text-slate-400 hover:text-red-300 transition-all cursor-pointer whitespace-nowrap"
                           >
                             Clear All
                           </button>
 
-                          <label className="cursor-pointer px-4 py-2 bg-violet-600 hover:bg-violet-500 text-white rounded-xl text-xs font-semibold shadow-md shadow-violet-500/20 transition-all flex items-center gap-1.5">
+                          <label className="cursor-pointer flex-1 sm:flex-none justify-center px-4 py-2 bg-violet-600 hover:bg-violet-500 text-white rounded-xl text-xs font-semibold shadow-md shadow-violet-500/20 transition-all flex items-center gap-1.5 whitespace-nowrap">
                             <FolderOpen className="w-3.5 h-3.5" />
                             <span>Add More Files</span>
                             <input 

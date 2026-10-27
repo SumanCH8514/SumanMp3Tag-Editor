@@ -513,17 +513,17 @@ const MetadataEditor = ({ file, onSave, onCancel }) => {
       animate={{ opacity: 1, y: 0 }}
       className="glass-panel p-3.5 sm:p-5 max-w-7xl mx-auto w-full flex-1 flex flex-col justify-between relative overflow-hidden min-h-[calc(100vh-140px)]"
     >
-      <div className="flex items-center justify-between pb-2.5 mb-2.5 border-b border-white/[0.08]">
-        <div className="flex items-center gap-2.5 min-w-0">
+      <div className="flex items-center justify-between gap-2.5 pb-2.5 mb-2.5 border-b border-white/[0.08]">
+        <div className="flex items-center gap-2 sm:gap-2.5 min-w-0 flex-1">
           <button
             type="button"
             onClick={onCancel}
-            className="p-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] text-slate-400 hover:text-white transition-colors cursor-pointer"
+            className="p-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] text-slate-400 hover:text-white transition-colors cursor-pointer flex-shrink-0"
             title="Back to queue"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
           </button>
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <h3 className="text-sm sm:text-base font-bold text-white tracking-tight truncate">
               {metadata.title || file.name}
             </h3>
@@ -533,20 +533,20 @@ const MetadataEditor = ({ file, onSave, onCancel }) => {
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-shrink-0">
           <button
             type="button"
             onClick={handleAutoFetchMetadata}
             disabled={fetchingMetadata || !metadata.title}
-            className="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-violet-600/20 hover:bg-violet-600/30 text-violet-300 border border-violet-500/30 active:scale-95 transition-all flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
+            className="px-2.5 sm:px-3 py-1.5 sm:py-1 rounded-lg text-xs sm:text-[11px] font-semibold bg-violet-600/20 hover:bg-violet-600/30 text-violet-300 border border-violet-500/30 active:scale-95 transition-all flex items-center gap-1.5 disabled:opacity-50 cursor-pointer whitespace-nowrap flex-shrink-0"
             title="Auto-fill missing details like Artists, Album, Year from iTunes"
           >
             {fetchingMetadata ? (
-              <Loader2 className="w-3 h-3 animate-spin" />
+              <Loader2 className="w-3.5 h-3.5 sm:w-3 sm:h-3 animate-spin text-violet-300 flex-shrink-0" />
             ) : (
-              <Wand2 className="w-3 h-3 text-violet-300" />
+              <Wand2 className="w-3.5 h-3.5 sm:w-3 sm:h-3 text-violet-300 flex-shrink-0" />
             )}
-            <span>Auto-Fill</span>
+            <span>{fetchingMetadata ? 'Auto-Filling...' : 'Auto-Fill'}</span>
           </button>
         </div>
       </div>
@@ -678,9 +678,25 @@ const MetadataEditor = ({ file, onSave, onCancel }) => {
         <div className="lg:col-span-5 space-y-3 min-w-0 flex flex-col justify-between h-full">
           <div className="space-y-2.5 sm:space-y-3">
             <div>
-              <label htmlFor="title" className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
-                Track Title
-              </label>
+              <div className="flex items-center justify-between mb-1">
+                <label htmlFor="title" className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                  Track Title
+                </label>
+                <button
+                  type="button"
+                  onClick={handleAutoFetchMetadata}
+                  disabled={fetchingMetadata || !metadata.title}
+                  className="sm:hidden text-[10px] font-semibold text-violet-400 hover:text-violet-300 flex items-center gap-1 transition-colors disabled:opacity-40 cursor-pointer"
+                  title="Auto-fill missing details from iTunes"
+                >
+                  {fetchingMetadata ? (
+                    <Loader2 className="w-2.5 h-2.5 animate-spin" />
+                  ) : (
+                    <Wand2 className="w-2.5 h-2.5" />
+                  )}
+                  <span>Auto-Fill Details</span>
+                </button>
+              </div>
               <input 
                 id="title"
                 name="title"

@@ -19,13 +19,13 @@ const Dropzone = ({ onFilesAdded }) => {
     noClick: false,
     multiple: true
   });
-
   const handleLoadSample = async (e) => {
     e.stopPropagation();
     if (loadingSample) return;
     setLoadingSample(true);
     try {
-      const samplePath = '/uploads/mp3/Dil_Luteya_-_Jazzy_B_-_SumanOnline_Com_6a74a8a7dc8d5.mp3';
+      const basePath = import.meta.env.BASE_URL || '/';
+      const samplePath = `${basePath.endsWith('/') ? basePath : basePath + '/'}uploads/mp3/Dil_Luteya_-_Jazzy_B_-_SumanOnline_Com_6a74a8a7dc8d5.mp3`;
       const response = await fetch(samplePath);
       if (!response.ok) throw new Error('Sample not found');
       const blob = await response.blob();

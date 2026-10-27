@@ -34,11 +34,11 @@ const FileItem = ({ file, onEdit, onRemove, status }) => {
         </div>
       </div>
 
-      <div className="flex items-center gap-2 flex-shrink-0 self-end sm:self-auto">
+      <div className="flex items-center gap-2 flex-shrink-0 w-full sm:w-auto pt-2 sm:pt-0 border-t sm:border-t-0 border-white/[0.06]">
         <button 
           type="button"
           onClick={() => onEdit(file)}
-          className="px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-semibold shadow-md shadow-violet-600/20 active:scale-95 transition-all flex items-center gap-1.5 cursor-pointer"
+          className="flex-1 sm:flex-none justify-center px-4 py-2.5 sm:py-2 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-semibold shadow-md shadow-violet-600/20 active:scale-95 transition-all flex items-center gap-1.5 cursor-pointer"
           title="Edit Metadata & Tag Details"
         >
           <Edit2 className="w-3.5 h-3.5" />
@@ -48,7 +48,7 @@ const FileItem = ({ file, onEdit, onRemove, status }) => {
         <button 
           type="button"
           onClick={() => onRemove(file)}
-          className="p-2 rounded-xl bg-white/[0.04] hover:bg-red-500/10 border border-white/[0.08] hover:border-red-500/30 text-slate-400 hover:text-red-400 transition-all active:scale-95 cursor-pointer"
+          className="p-2.5 sm:p-2 rounded-xl bg-white/[0.04] hover:bg-red-500/10 border border-white/[0.08] hover:border-red-500/30 text-slate-400 hover:text-red-400 transition-all active:scale-95 cursor-pointer"
           title="Remove File"
         >
           <Trash2 className="w-4 h-4" />
